@@ -12,7 +12,6 @@
         .bg-autofill { background-color: #fff7ed !important; }
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         
-        /* Estilo da tela de login */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #1e293b; z-index: 9999; display: flex;
@@ -27,16 +26,16 @@
             <img src="logogg.jpeg" alt="GeG" class="h-20 mx-auto mb-6">
             <h2 class="text-slate-800 font-black uppercase tracking-widest mb-4">Acesso Restrito</h2>
             <input type="password" id="inputSenha" placeholder="Digite a senha" 
-                   class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center focus:border-orange-500 outline-none">
-            <button onclick="verificarSenha()" 
-                    class="w-full bg-orange-500 text-white font-black py-3 rounded-lg hover:bg-orange-600 transition uppercase shadow-lg">
+                   class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center focus:border-orange-500 outline-none shadow-sm">
+            <button type="button" onclick="verificarSenha()" 
+                    class="w-full bg-orange-500 text-white font-black py-4 rounded-lg hover:bg-orange-600 active:scale-95 transition uppercase shadow-lg">
                 Entrar no Sistema
             </button>
             <p id="erroSenha" class="text-red-500 text-xs mt-3 font-bold hidden">Senha incorreta!</p>
         </div>
     </div>
 
-    <div id="conteudoSistema" class="hidden">
+    <div id="conteudoSistema" style="display: none;">
         <nav class="bg-slate-800 text-white p-3 shadow-xl mb-4 border-b-4 border-orange-500 sticky top-0 z-50">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center">
@@ -58,7 +57,7 @@
             <section id="locacao" class="tab-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 border-b-4 border-orange-500 text-center text-white font-black uppercase tracking-widest text-sm">Registrar Locação</div>
                 <div class="p-4 md:p-8">
-                    <form id="formLocacao" class="space-y-4">
+                    <form id="formLocacao" class="space-y-4" onsubmit="return false;">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input type="text" id="nome" list="listaClientes" oninput="preencherDadosCliente(this.value)" placeholder="Nome do Cliente" class="w-full border-2 border-slate-200 p-3 rounded-lg text-sm">
                             <datalist id="listaClientes"></datalist>
@@ -78,7 +77,7 @@
 
             <section id="clientes" class="tab-content hidden bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 border-b-4 border-orange-500 text-center text-white font-black uppercase text-sm">Novo Cliente</div>
-                <div class="p-4 md:p-8"><form id="formCliente" class="space-y-4">
+                <div class="p-4 md:p-8"><form id="formCliente" class="space-y-4" onsubmit="return false;">
                     <input type="text" id="cli_nome" placeholder="Nome / Razão Social" class="w-full border-2 border-slate-200 p-3 rounded-lg text-sm">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="text" id="cli_cpf" oninput="mascaraCPF(this)" placeholder="CPF ou CNPJ" class="w-full border-2 border-slate-200 p-3 rounded-lg text-sm">
@@ -91,7 +90,7 @@
 
             <section id="equipamentos" class="tab-content hidden bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 border-b-4 border-orange-500 text-center text-white font-black uppercase text-sm">Materiais</div>
-                <div class="p-4 md:p-8"><form id="formMaterial" class="space-y-4">
+                <div class="p-4 md:p-8"><form id="formMaterial" class="space-y-4" onsubmit="return false;">
                     <input type="text" id="mat_nome" placeholder="Equipamento" class="w-full border-2 border-slate-200 p-3 rounded-lg text-sm">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input type="text" id="mat_pat" placeholder="Patrimônio" class="w-full border-2 border-slate-200 p-3 rounded-lg text-sm">
@@ -127,18 +126,20 @@
 
     <script>
         // CONFIGURAÇÃO DE SEGURANÇA
-        const SENHA_ACESSO = "GeG@0612"; // <--- MUDE SUA SENHA AQUI
+        const SENHA_ACESSO = "Geg@0612"; // <--- MUDE SUA SENHA AQUI
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
         
         let listaGlobalClientes = [];
 
-        // Verifica se já fez login antes (salva no navegador por 24h)
+        // Facilitador para celular: apertar "Enter" no teclado para entrar
+        document.getElementById('inputSenha').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verificarSenha();
+        });
+
         window.onload = () => {
             const logado = localStorage.getItem('geg_autenticado');
             if (logado === 'true') {
-                document.getElementById('loginOverlay').classList.add('hidden');
-                document.getElementById('conteudoSistema').classList.remove('hidden');
-                carregarEquipamentos(); carregarClientes();
+                liberarSistema();
             }
         };
 
@@ -146,13 +147,19 @@
             const senhaDigitada = document.getElementById('inputSenha').value;
             if (senhaDigitada === SENHA_ACESSO) {
                 localStorage.setItem('geg_autenticado', 'true');
-                document.getElementById('loginOverlay').classList.add('hidden');
-                document.getElementById('conteudoSistema').classList.remove('hidden');
-                carregarEquipamentos(); carregarClientes();
+                liberarSistema();
             } else {
                 document.getElementById('erroSenha').classList.remove('hidden');
                 document.getElementById('inputSenha').value = "";
             }
+        }
+
+        function liberarSistema() {
+            // Remove a tela de login e mostra o sistema (usando display block para garantir)
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('conteudoSistema').style.display = 'block';
+            carregarEquipamentos(); 
+            carregarClientes();
         }
 
         function logout() {
@@ -160,7 +167,7 @@
             location.reload();
         }
 
-        // Funções de Negócio
+        // --- RESTANTE DAS FUNÇÕES IGUAIS ---
         function showTab(tabId) {
             const abas = document.getElementsByClassName('tab-content');
             for (let i = 0; i < abas.length; i++) abas[i].classList.add('hidden');
