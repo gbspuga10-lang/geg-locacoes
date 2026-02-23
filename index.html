@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeG - Locações</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { opacity: 0.5; pointer-events: none; }
+        .tab-content { transition: all 0.2s ease; }
+        input:focus, select:focus { border-color: #f97316 !important; outline: none; ring: 2px; ring-color: #f97316; }
+        .bg-autofill { background-color: #fff7ed !important; transition: background 0.5s; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-slate-900">
+
+    <nav class="bg-slate-800 text-white p-4 shadow-xl mb-8 border-b-4 border-orange-500">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center">
+                 <img src="logogg.jpeg" alt="GeG Locações" class="h-16 w-auto object-contain">
+            </div>
+            
+            <div class="space-x-6 flex items-center">
+                <button onclick="showTab('clientes')" class="hover:text-orange-400 font-bold uppercase text-xs tracking-widest transition">Clientes</button>
+                <button onclick="showTab('equipamentos')" class="hover:text-orange-400 font-bold uppercase text-xs tracking-widest transition">Equipamentos</button>
+                <button onclick="abrirRelatorio()" class="hover:text-orange-400 font-bold uppercase text-xs tracking-widest transition border-r border-slate-600 pr-6">Relatórios</button>
+                
+                <button onclick="showTab('locacao')" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded shadow-lg transform hover:scale-105 transition font-black uppercase text-xs">
+                    Nova Locação
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        
+        <section id="locacao" class="tab-content bg-white rounded shadow-2xl max-w-2xl mx-auto overflow-hidden">
+            <div class="bg-slate-800 p-4 border-b-4 border-orange-500 text-center">
+                <h2 class="text-white font-black uppercase tracking-widest">Registrar Locação</h2>
+            </div>
+            <div class="p-8">
+                <form id="formLocacao" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="relative">
+                            <input type="text" id="nome" list="listaClientes" oninput="preencherDadosCliente(this.value)" placeholder="Nome do Cliente" class="w-full border-2 border-slate-200 p-3 rounded">
+                            <datalist id="listaClientes"></datalist>
+                        </div>
+                        <input type="text" id="cpf" oninput="mascaraCPF(this)" placeholder="CPF/CNPJ" class="w-full border-2 border-slate-200 p-3 rounded">
+                    </div>
+                    <input type="text" id="endereco" placeholder="Endereço de Entrega" class="w-full border-2 border-slate-200 p-3 rounded">
+                    
+                    <select id="item" class="w-full border-2 border-slate-200 p-3 rounded font-semibold text-slate-700">
+                        <option value="">Carregando equipamentos...</option>
+                    </select>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="date" id="dataInicio" class="w-full border-2 border-slate-200 p-3 rounded">
+                        <input type="date" id="dataFim" class="w-full border-2 border-slate-200 p-3 rounded">
+                    </div>
+                    
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-slate-400 font-bold">R$</span>
+                        <input type="text" id="valor" oninput="mascaraMoeda(this)" placeholder="0,00" class="w-full border-2 border-slate-200 p-3 pl-10 rounded font-black text-xl text-slate-800">
+                    </div>
+
+                    <button type="button" onclick="salvar('locacao')" class="w-full bg-slate-800 text-white py-4 rounded font-black hover:bg-orange-500 transition uppercase">Lançar Locação</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="clientes" class="tab-content hidden bg-white rounded shadow-2xl max-w-2xl mx-auto overflow-hidden">
+            <div class="bg-slate-800 p-4 border-b-4 border-orange-500 text-center">
+                <h2 class="text-white font-black uppercase tracking-widest">Cadastrar Novo Cliente</h2>
+            </div>
+            <div class="p-8">
+                <form id="formCliente" class="space-y-5">
+                    <input type="text" id="cli_nome" placeholder="Nome Completo / Razão Social" class="w-full border-2 border-slate-200 p-3 rounded">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="cli_cpf" oninput="mascaraCPF(this)" placeholder="CPF ou CNPJ" class="w-full border-2 border-slate-200 p-3 rounded">
+                        <input type="text" id="cli_tel" placeholder="Telefone de Contato" class="w-full border-2 border-slate-200 p-3 rounded">
+                    </div>
+                    <input type="text" id="cli_end" placeholder="Endereço Completo" class="w-full border-2 border-slate-200 p-3 rounded">
+                    <button type="button" onclick="salvar('cliente')" class="w-full bg-slate-800 text-white py-4 rounded font-black hover:bg-orange-500 transition uppercase">Cadastrar Cliente</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="equipamentos" class="tab-content hidden bg-white rounded shadow-2xl max-w-2xl mx-auto overflow-hidden">
+            <div class="bg-slate-800 p-4 border-b-4 border-orange-500 text-center">
+                <h2 class="text-white font-black uppercase tracking-widest">Gestão de Equipamentos</h2>
+            </div>
+            <div class="p-8">
+                <form id="formMaterial" class="space-y-5">
+                    <input type="text" id="mat_nome" placeholder="Nome do Equipamento (Ex: Betoneira 400L)" class="w-full border-2 border-slate-200 p-3 rounded">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" id="mat_pat" placeholder="Número de Patrimônio" class="w-full border-2 border-slate-200 p-3 rounded">
+                        <input type="text" id="mat_val" oninput="mascaraMoeda(this)" placeholder="Valor Diária (R$)" class="w-full border-2 border-slate-200 p-3 rounded">
+                    </div>
+                    <select id="mat_status" class="w-full border-2 border-slate-200 p-3 rounded font-semibold">
+                        <option value="Disponível">Disponível</option>
+                        <option value="Manutenção">Em Manutenção</option>
+                    </select>
+                    <button type="button" onclick="salvar('material')" class="w-full bg-slate-800 text-white py-4 rounded font-black hover:bg-orange-500 transition uppercase">Cadastrar Equipamento</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="relatorios" class="tab-content hidden container mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-slate-700 p-6 rounded shadow-xl border-l-8 border-orange-500 text-white">
+                    <p class="text-[10px] text-orange-400 font-black uppercase">Receita Ativa</p>
+                    <h3 id="dashTotal" class="text-2xl font-black mt-1">R$ 0,00</h3>
+                </div>
+                <div class="bg-white p-6 rounded shadow-lg border-l-8 border-slate-800 text-slate-400">
+                    <p class="text-[10px] font-black uppercase">Equipamentos Fora</p>
+                    <h3 id="dashItens" class="text-2xl font-black text-slate-800 mt-1">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded shadow-lg border-l-8 border-red-500 text-slate-400">
+                    <p class="text-[10px] font-black uppercase">Atrasos Críticos</p>
+                    <h3 id="dashAtraso" class="text-2xl font-black text-red-600 mt-1">0</h3>
+                </div>
+                <div class="bg-slate-700 p-4 rounded shadow-xl flex items-center">
+                    <div class="relative w-full">
+                        <input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="Buscar..." class="w-full bg-slate-600 border-none text-white rounded p-2 pl-10 text-sm outline-none">
+                        <span class="absolute left-3 top-2">🔍</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded shadow-2xl overflow-hidden border border-slate-200">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 uppercase text-[11px] font-black tracking-widest border-b">
+                            <th class="p-4 border-r">Cliente</th>
+                            <th class="p-4 border-r">Equipamento</th>
+                            <th class="p-4 border-r text-center">Início</th>
+                            <th class="p-4 border-r text-center">Retorno</th>
+                            <th class="p-4 border-r">Valor</th>
+                            <th class="p-4 text-center border-r">Status</th>
+                            <th class="p-4 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaDados" class="text-sm font-medium"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
+
+        let listaGlobalClientes = [];
+
+        window.onload = function() {
+            carregarEquipamentos();
+            carregarClientes();
+        };
+
+        function showTab(tabId) {
+            const abas = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < abas.length; i++) abas[i].classList.add('hidden');
+            const abaAlvo = document.getElementById(tabId);
+            if(abaAlvo) abaAlvo.classList.remove('hidden');
+        }
+
+        function mascaraCPF(i) {
+            let v = i.value.replace(/\D/g, "");
+            if (v.length <= 11) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/g, "$1.$2.$3-$4");
+            else v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+            i.value = v;
+        }
+
+        function mascaraMoeda(i) {
+            let v = i.value.replace(/\D/g, "");
+            v = (v / 100).toFixed(2).replace(".", ",");
+            v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+            i.value = v;
+        }
+
+        async function carregarEquipamentos() {
+            const selectItem = document.getElementById('item');
+            if(!selectItem) return;
+            try {
+                const resposta = await fetch(URL_SCRIPT + "?aba=Equipamentos");
+                const equipamentos = await resposta.json();
+                selectItem.innerHTML = '<option value="">Selecione o Equipamento...</option>';
+                equipamentos.forEach(equip => {
+                    if (equip[3] === "Disponível") {
+                        let option = document.createElement('option');
+                        option.value = equip[0];
+                        option.text = `${equip[0]} (Pat: ${equip[1]})`;
+                        selectItem.appendChild(option);
+                    }
+                });
+            } catch (e) { selectItem.innerHTML = '<option value="">Erro ao carregar</option>'; }
+        }
+
+        async function carregarClientes() {
+            try {
+                const resposta = await fetch(URL_SCRIPT + "?aba=Clientes");
+                listaGlobalClientes = await resposta.json();
+                const datalist = document.getElementById('listaClientes');
+                if(!datalist) return;
+                datalist.innerHTML = ''; 
+                listaGlobalClientes.forEach(cli => {
+                    let option = document.createElement('option');
+                    option.value = cli[0]; 
+                    datalist.appendChild(option);
+                });
+            } catch (e) { console.error("Erro clientes:", e); }
+        }
+
+        function preencherDadosCliente(nome) {
+            const cliente = listaGlobalClientes.find(c => c[0] === nome);
+            const fieldCpf = document.getElementById('cpf');
+            const fieldEnd = document.getElementById('endereco');
+            if (cliente) {
+                fieldCpf.value = cliente[1] || "";
+                fieldEnd.value = cliente[3] || "";
+                fieldCpf.classList.add('bg-autofill');
+                fieldEnd.classList.add('bg-autofill');
+            } else {
+                fieldCpf.classList.remove('bg-autofill');
+                fieldEnd.classList.remove('bg-autofill');
+            }
+        }
+
+        async function salvar(tipo) {
+            let payload = { tipo: tipo };
+            let formId = (tipo === 'locacao') ? 'formLocacao' : (tipo === 'cliente' ? 'formCliente' : 'formMaterial');
+
+            if (tipo === 'locacao') {
+                payload.nome = document.getElementById('nome').value;
+                payload.cpf = document.getElementById('cpf').value;
+                payload.endereco = document.getElementById('endereco').value;
+                payload.item = document.getElementById('item').value;
+                payload.valor = document.getElementById('valor').value.replace(/\./g, "").replace(",", ".");
+                payload.dataInicio = document.getElementById('dataInicio').value;
+                payload.dataFim = document.getElementById('dataFim').value;
+            } else if (tipo === 'cliente') {
+                payload.nome = document.getElementById('cli_nome').value;
+                payload.cpf = document.getElementById('cli_cpf').value;
+                payload.telefone = document.getElementById('cli_tel').value;
+                payload.endereco = document.getElementById('cli_end').value;
+            } else if (tipo === 'material') {
+                payload.nome = document.getElementById('mat_nome').value;
+                payload.patrimonio = document.getElementById('mat_pat').value;
+                payload.valor = document.getElementById('mat_val').value.replace(/\./g, "").replace(",", ".");
+                payload.status = document.getElementById('mat_status').value;
+            }
+
+            try {
+                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                alert("✅ Registrado com sucesso!");
+                document.getElementById(formId).reset();
+                if (tipo === 'material') carregarEquipamentos();
+                if (tipo === 'cliente') carregarClientes();
+            } catch (e) { alert("Erro ao salvar."); }
+        }
+
+        async function abrirRelatorio() {
+            showTab('relatorios');
+            const tabela = document.getElementById('tabelaDados');
+            tabela.innerHTML = "<tr><td colspan='7' class='p-10 text-center animate-pulse font-black'>Sincronizando...</td></tr>";
+            let soma = 0, rua = 0, atraso = 0;
+            try {
+                const resposta = await fetch(URL_SCRIPT + "?aba=Locacoes");
+                const dados = await resposta.json();
+                tabela.innerHTML = "";
+                const hoje = new Date();
+                hoje.setHours(0,0,0,0);
+
+                dados.forEach(linha => {
+                    const status = linha[7] || "Ativo";
+                    const valor = parseFloat(linha[4]) || 0;
+                    const dataFim = new Date(linha[6]);
+                    dataFim.setHours(24,0,0,0);
+                    const vencido = (status === "Ativo" && hoje > dataFim);
+                    if(status === "Ativo") { soma += valor; rua++; if(vencido) atraso++; }
+
+                    const tr = document.createElement('tr');
+                    tr.className = `border-b border-slate-50 hover:bg-orange-50 ${vencido ? 'bg-red-50' : ''}`;
+                    tr.innerHTML = `
+                        <td class="p-4 font-bold">${linha[0]} ${vencido ? '<br><span class="text-[9px] bg-red-600 text-white px-2 rounded-full font-black">! ATRASADO</span>' : ''}</td>
+                        <td class="p-4 text-slate-500 font-black">${linha[3]}</td>
+                        <td class="p-4 text-center text-xs font-bold text-slate-500">${new Date(linha[5]).toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 text-center text-xs font-bold text-slate-400">${new Date(linha[6]).toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 font-black">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td class="p-4 text-center"><span class="px-3 py-1 rounded text-[10px] font-black uppercase ${status === "Ativo" ? 'bg-slate-800 text-orange-400' : 'bg-gray-100 text-gray-400'}">${status}</span></td>
+                        <td class="p-4 text-center space-x-3">
+                            <button onclick='prepararEdicao(${JSON.stringify(linha)})' title="Editar" class="opacity-60 hover:opacity-100 hover:text-orange-500 transition">📝</button>
+                            <button onclick="excluirLinha(${linha[8]})" title="Excluir" class="opacity-40 hover:opacity-100 hover:text-red-500 transition">🗑️</button>
+                            ${status === "Ativo" ? `<button onclick="finalizarLocacao(${linha[8]})" class="text-[9px] font-black bg-orange-500 text-white px-3 py-1 rounded">FINALIZAR</button>` : ''}
+                        </td>`;
+                    tabela.appendChild(tr);
+                });
+                document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                document.getElementById('dashItens').innerText = rua;
+                document.getElementById('dashAtraso').innerText = atraso;
+            } catch (e) { tabela.innerHTML = "Erro ao carregar dados."; }
+        }
+
+        async function prepararEdicao(dadosLinha) {
+            const novoValor = prompt("Novo Valor da Locação (Ex: 150,00):", dadosLinha[4].toString().replace(".", ","));
+            const novaDataFim = prompt("Nova Data de Retorno (AAAA-MM-DD):", dadosLinha[6].split('T')[0]);
+
+            if (novoValor !== null && novaDataFim !== null) {
+                const payload = {
+                    tipo: 'editar',
+                    linha: dadosLinha[8],
+                    nome: dadosLinha[0],
+                    cpf: dadosLinha[1],
+                    endereco: dadosLinha[2],
+                    item: dadosLinha[3],
+                    valor: novoValor.replace(/\./g, "").replace(",", "."),
+                    dataInicio: dadosLinha[5].split('T')[0],
+                    dataFim: novaDataFim
+                };
+
+                if(confirm("Confirmar alterações?")) {
+                    try {
+                        await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                        alert("✅ Editado com sucesso! Sincronizando...");
+                        abrirRelatorio();
+                    } catch (e) { alert("Erro ao salvar edição."); }
+                }
+            }
+        }
+
+        async function excluirLinha(l) { if(confirm("Deseja realmente excluir este registro?")) { await fetch(URL_SCRIPT, {method:'POST', mode:'no-cors', body:JSON.stringify({tipo:'excluir', linha:l})}); abrirRelatorio(); }}
+        async function finalizarLocacao(l) { if(confirm("Marcar como Finalizado?")) { await fetch(URL_SCRIPT, {method:'POST', mode:'no-cors', body:JSON.stringify({tipo:'finalizar', linha:l})}); abrirRelatorio(); }}
+        function filtrarTabela() {
+            let f = document.getElementById("inputBusca").value.toUpperCase();
+            let l = document.getElementById("tabelaDados").getElementsByTagName("tr");
+            for (let i = 0; i < l.length; i++) l[i].style.display = l[i].textContent.toUpperCase().includes(f) ? "" : "none";
+        }
+    </script>
+</body>
+</html>
