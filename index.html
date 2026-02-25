@@ -29,11 +29,11 @@
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <img src="logogg.jpeg" alt="GeG" class="h-12">
                 <div class="flex flex-wrap justify-center gap-4 items-center text-[10px] md:text-xs font-black uppercase">
-                    <button onclick="showTab('clientes')" class="hover:text-orange-400">Clientes</button>
-                    <button onclick="showTab('equipamentos')" class="hover:text-orange-400">Materiais</button>
-                    <button onclick="abrirRelatorio()" class="text-orange-400">Relatórios</button>
-                    <button onclick="logout()" class="text-red-400">Sair</button>
-                    <button onclick="showTab('locacao')" class="bg-orange-500 px-4 py-2 rounded text-white">+ Locação</button>
+                    <button onclick="showTab('clientes')" class="hover:text-orange-400 transition">Clientes</button>
+                    <button onclick="showTab('equipamentos')" class="hover:text-orange-400 transition">Materiais</button>
+                    <button onclick="abrirRelatorio()" class="text-orange-400 transition">Relatórios</button>
+                    <button onclick="logout()" class="text-red-400 transition">Sair</button>
+                    <button onclick="showTab('locacao')" class="bg-orange-500 px-4 py-2 rounded text-white transition">+ Locação</button>
                 </div>
             </div>
         </nav>
@@ -56,7 +56,7 @@
                         <span class="absolute left-3 top-3 text-slate-400 font-bold">R$</span>
                         <input type="text" id="loc_valor" oninput="mascaraMoeda(this)" placeholder="0,00" class="w-full border-2 p-3 pl-10 rounded-lg font-black text-xl text-orange-600">
                     </div>
-                    <button onclick="salvarLocacao()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500">Lançar no Sistema</button>
+                    <button onclick="salvarLocacao()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500 transition">Lançar no Sistema</button>
                 </div>
             </section>
 
@@ -67,7 +67,7 @@
                     <input type="text" id="cli_cpf" placeholder="CPF ou CNPJ" class="w-full border-2 p-3 rounded-lg">
                     <input type="text" id="cli_tel" placeholder="Telefone / WhatsApp" class="w-full border-2 p-3 rounded-lg">
                     <input type="text" id="cli_end" placeholder="Endereço Completo" class="w-full border-2 p-3 rounded-lg">
-                    <button onclick="salvarCliente()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500">Cadastrar Cliente</button>
+                    <button onclick="salvarCliente()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500 transition">Cadastrar Cliente</button>
                 </div>
             </section>
 
@@ -81,22 +81,36 @@
                         <option value="Disponível">Disponível</option>
                         <option value="Manutenção">Manutenção</option>
                     </select>
-                    <button onclick="salvarMaterial()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500">Salvar Material</button>
+                    <button onclick="salvarMaterial()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500 transition">Salvar Material</button>
                 </div>
             </section>
 
             <section id="relatorios" class="tab-content hidden">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    <div class="bg-slate-700 p-3 rounded-lg border-l-4 border-orange-500 text-white"><p class="text-[8px] font-black uppercase">Receita Ativa</p><h3 id="dashTotal" class="text-sm md:text-2xl font-black">R$ 0,00</h3></div>
-                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500 shadow-md"><p class="text-[8px] font-black uppercase text-red-600">Atrasos</p><h3 id="dashAtraso" class="text-sm md:text-2xl font-black text-red-600">0</h3></div>
-                    <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar cliente ou item..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none"></div>
+                    <div class="bg-slate-700 p-3 rounded-lg border-l-4 border-orange-500 text-white">
+                        <p class="text-[8px] font-black uppercase">Receita Ativa</p>
+                        <h3 id="dashTotal" class="text-sm md:text-2xl font-black">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500 shadow-md">
+                        <p class="text-[8px] font-black uppercase text-red-600">Atrasos</p>
+                        <h3 id="dashAtraso" class="text-sm md:text-2xl font-black text-red-600">0</h3>
+                    </div>
+                    <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2">
+                        <input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar cliente ou item..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none">
+                    </div>
                 </div>
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
                     <div class="table-container">
-                        <table class="w-full text-left min-w-[900px]">
+                        <table class="w-full text-left min-w-[950px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
-                                    <th class="p-4">Cliente</th><th class="p-4">Item</th><th class="p-4 text-center">Retorno</th><th class="p-4">Valor</th><th class="p-4 text-center">Pagamento</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Ações</th>
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4">Item</th>
+                                    <th class="p-4 text-center">Retorno</th>
+                                    <th class="p-4">Valor</th>
+                                    <th class="p-4 text-center">Pagamento</th>
+                                    <th class="p-4 text-center">Status</th>
+                                    <th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaDados" class="text-xs font-medium"></tbody>
@@ -115,7 +129,9 @@
             if (document.getElementById('inputSenha').value === SENHA_ACESSO) {
                 localStorage.setItem('geg_autenticado', 'true');
                 liberarSistema();
-            } else { document.getElementById('erroSenha').classList.remove('hidden'); }
+            } else { 
+                document.getElementById('erroSenha').classList.remove('hidden'); 
+            }
         }
 
         window.onload = () => { if(localStorage.getItem('geg_autenticado') === 'true') liberarSistema(); };
@@ -130,7 +146,7 @@
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        // --- FUNÇÕES DE CARREGAMENTO ---
+        // --- CARREGAMENTO ---
         async function carregarEquipamentos() {
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Equipamentos");
@@ -156,7 +172,7 @@
             } catch(e) {}
         }
 
-        // --- FUNÇÕES DE SALVAMENTO ---
+        // --- SALVAMENTO ---
         async function salvarLocacao() {
             let p = { 
                 tipo: 'locacao',
@@ -220,9 +236,11 @@
                     const l = item.valores;
                     const numLinha = item.numeroLinha;
                     if(!l[0] || l[0] === "Nome") return;
+                    
                     const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
                     const status = l[7] || "Ativo";
                     const pagamento = l[9] || l[8] || "Pendente"; 
+                    
                     let dFim = new Date(l[6]);
                     if(isNaN(dFim.getTime())) {
                         const p = String(l[6]).split('/');
@@ -233,32 +251,31 @@
                     if(status === "Ativo") { soma += valor; if(isVencido) atrasos++; }
 
                     tb.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''}">
+                        <tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''} transition">
                             <td class="p-4 font-bold text-slate-800">${l[0]}</td>
                             <td class="p-4 text-slate-600">${l[3]}</td>
                             <td class="p-4 text-center">${dFim.toLocaleDateString('pt-BR')}</td>
                             <td class="p-4 font-black">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                             <td class="p-4 text-center">
-                                <button onclick="mudarPagamento(${numLinha}, '${pagamento}')" class="px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${pagamento}</button>
+                                <button onclick="mudarPagamento(${numLinha}, '${pagamento}')" class="px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} transition">${pagamento}</button>
                             </td>
                             <td class="p-4 text-center">
                                 <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span>
                             </td>
-
-<td class="p-4 text-center">
-    <div class="flex flex-col gap-1">
-        <button onclick="finalizarLocacao(${numLinha})" 
-            class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[9px] uppercase hover:bg-orange-600 transition">
-            Fim
-        </button>
-        
-        <button onclick="excluirLocacao(${numLinha})" 
-            class="bg-red-100 text-red-600 px-3 py-1 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition">
-            Excluir
-        </button>
-    </div>
-</td>
-                          
+                            <td class="p-4 text-center">
+                                <div class="flex flex-row justify-center gap-2">
+                                    ${status === 'Ativo' ? `
+                                        <button onclick="finalizarLocacao(${numLinha})" 
+                                            class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">
+                                            Finalizar
+                                        </button>
+                                    ` : ''}
+                                    <button onclick="excluirLocacao(${numLinha})" 
+                                        class="bg-red-50 text-red-600 border border-red-100 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">
+                                        Excluir
+                                    </button>
+                                </div>
+                            </td>
                         </tr>`;
                 });
                 document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
@@ -273,29 +290,23 @@
         }
 
         async function finalizarLocacao(linha) {
-            if(!confirm("Deseja finalizar esta locação?")) return;
+            if(!confirm("Deseja marcar esta locação como FINALIZADA?")) return;
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) });
-            setTimeout(abrirRelatorio, 500);
+            setTimeout(abrirRelatorio, 800);
         }
-async function excluirLocacao(linha) {
-    if(!confirm("⚠️ ATENÇÃO: Deseja excluir permanentemente esta linha da planilha?")) return;
-    
-    // Mostra um aviso visual simples
-    console.log("Excluindo linha: " + linha);
-    
-    try {
-        await fetch(URL_SCRIPT, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: JSON.stringify({tipo: 'excluir', linha: linha}) 
-        });
-        
-        // Recarrega o relatório após um pequeno delay para o Google processar
-        setTimeout(abrirRelatorio, 800);
-    } catch(e) {
-        alert("Erro ao excluir a linha.");
-    }
-}
+
+        async function excluirLocacao(linha) {
+            if(!confirm("⚠️ ATENÇÃO!\n\nDeseja excluir permanentemente esta linha da planilha?")) return;
+            try {
+                await fetch(URL_SCRIPT, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({tipo: 'excluir', linha: linha}) 
+                });
+                setTimeout(abrirRelatorio, 800);
+            } catch(e) { alert("Erro ao excluir."); }
+        }
+
         function filtrarTabela() {
             let f = document.getElementById("inputBusca").value.toUpperCase();
             document.querySelectorAll("#tabelaDados tr").forEach(tr => {
