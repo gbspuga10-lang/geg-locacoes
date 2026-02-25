@@ -10,6 +10,8 @@
         .tab-content { transition: all 0.2s ease; }
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .btn-status { transition: all 0.2s; }
+        .btn-status:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
@@ -74,7 +76,7 @@
                                     <th class="p-4">Item (D)</th>
                                     <th class="p-4 text-center">Retorno (G)</th>
                                     <th class="p-4">Valor (E)</th>
-                                    <th class="p-4 text-center">Pagamento (I)</th>
+                                    <th class="p-4 text-center">Pagamento (I/J)</th>
                                     <th class="p-4 text-center">Status (H)</th>
                                     <th class="p-4 text-center">Ações</th>
                                 </tr>
@@ -116,8 +118,12 @@
                 const dados = await r.json();
                 const sel = document.getElementById('item');
                 sel.innerHTML = '<option value="">Selecione o Material...</option>';
-                dados.forEach(e => { if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]}</option>`; });
-            } catch(e) {}
+                // O doGet novo envia objetos: {valores: [...]}
+                dados.forEach(item => {
+                    const e = item.valores;
+                    if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]}</option>`;
+                });
+            } catch(e) { console.log("Erro materiais", e) }
         }
 
         async function carregarClientes() {
@@ -125,36 +131,41 @@
                 const r = await fetch(URL_SCRIPT + "?aba=Clientes");
                 const dados = await r.json();
                 const dl = document.getElementById('listaClientes'); dl.innerHTML = '';
-                dados.forEach(c => { if(c[0]) dl.innerHTML += `<option value="${c[0]}">`; });
+                dados.forEach(item => {
+                    const c = item.valores;
+                    if(c[0]) dl.innerHTML += `<option value="${c[0]}">`;
+                });
             } catch(e) {}
         }
 
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center font-black text-slate-400'>Carregando dados da aba Locações...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center font-black text-slate-400'>Sincronizando dados...</td></tr>";
             
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
-                const dados = await r.json();
+                const dadosRecebidos = await r.json();
                 tb.innerHTML = "";
                 
                 let soma = 0, atrasos = 0;
                 const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-                dados.forEach((l, index) => {
+                dadosRecebidos.forEach(item => {
+                    const l = item.valores;
+                    const numLinha = item.numeroLinha;
+
                     if(!l[0] || l[0] === "Nome") return;
 
                     try {
                         const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
                         const status = l[7] || "Ativo";
-                        const pagamento = l[8] || "Pendente";
+                        // Seu script salva o pagamento na Coluna 10 (Índice 9)
+                        const pagamento = l[9] || l[8] || "Pendente"; 
                         
-                        // Tratamento de Data (Coluna G = índice 6)
-                        let dFimRaw = l[6];
-                        let dFim = new Date(dFimRaw);
+                        let dFim = new Date(l[6]);
                         if(isNaN(dFim.getTime())) {
-                            const p = String(dFimRaw).split('/');
+                            const p = String(l[6]).split('/');
                             dFim = new Date(p[2], p[1]-1, p[0]);
                         }
                         dFim.setHours(23,59,59,0);
@@ -169,24 +180,33 @@
                                 <td class="p-4 text-center font-mono">${dFim.toLocaleDateString('pt-BR')}</td>
                                 <td class="p-4 font-black text-slate-700">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                                 <td class="p-4 text-center">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${pagamento}</span>
+                                    <button onclick="mudarPagamento(${numLinha}, '${pagamento}')" class="btn-status px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                                        ${pagamento}
+                                    </button>
                                 </td>
                                 <td class="p-4 text-center">
                                     <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span>
                                 </td>
                                 <td class="p-4 text-center">
-                                    <button onclick="finalizarLocacao(${index + 1})" class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[10px]">FIM</button>
+                                    <button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[10px]">FIM</button>
                                 </td>
                             </tr>`;
-                    } catch(e) {}
+                    } catch(e) { console.log("Erro linha", e) }
                 });
 
                 document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
 
             } catch(e) {
-                tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center text-red-500'>Erro ao carregar. Verifique se a aba chama-se exatamente 'Locacoes'.</td></tr>";
+                tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center text-red-500'>Erro crítico ao carregar. Verifique o Script Google.</td></tr>";
             }
+        }
+
+        async function mudarPagamento(linha, statusAtual) {
+            const novo = statusAtual === 'Pago' ? 'Pendente' : 'Pago';
+            // Chama a função 'pagamento' do seu doPost (Coluna 10)
+            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'pagamento', linha: linha, statusPagamento: novo}) });
+            setTimeout(abrirRelatorio, 500);
         }
 
         async function salvar(tipo) {
@@ -198,14 +218,12 @@
                 item: document.getElementById('item').value,
                 valor: document.getElementById('valor').value.replace(/\./g, "").replace(",", "."),
                 dataInicio: document.getElementById('dataInicio').value,
-                dataFim: document.getElementById('dataFim').value,
-                status: "Ativo",
-                pagamento: "Pendente"
+                dataFim: document.getElementById('dataFim').value
             };
 
             try {
                 await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("✅ Registrado com sucesso!");
+                alert("✅ Registrado!");
                 document.getElementById('formLocacao').reset();
             } catch(e) { alert("Erro ao salvar."); }
         }
@@ -213,7 +231,7 @@
         async function finalizarLocacao(linha) {
             if(!confirm("Deseja finalizar?")) return;
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) });
-            abrirRelatorio();
+            setTimeout(abrirRelatorio, 500);
         }
 
         function filtrarTabela() {
