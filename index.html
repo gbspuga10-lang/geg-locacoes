@@ -244,9 +244,21 @@
                             <td class="p-4 text-center">
                                 <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span>
                             </td>
-                            <td class="p-4 text-center">
-                                <button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[10px]">FIM</button>
-                            </td>
+
+<td class="p-4 text-center">
+    <div class="flex flex-col gap-1">
+        <button onclick="finalizarLocacao(${numLinha})" 
+            class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[9px] uppercase hover:bg-orange-600 transition">
+            Fim
+        </button>
+        
+        <button onclick="excluirLocacao(${numLinha})" 
+            class="bg-red-100 text-red-600 px-3 py-1 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition">
+            Excluir
+        </button>
+    </div>
+</td>
+                          
                         </tr>`;
                 });
                 document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
@@ -265,7 +277,25 @@
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) });
             setTimeout(abrirRelatorio, 500);
         }
-
+async function excluirLocacao(linha) {
+    if(!confirm("⚠️ ATENÇÃO: Deseja excluir permanentemente esta linha da planilha?")) return;
+    
+    // Mostra um aviso visual simples
+    console.log("Excluindo linha: " + linha);
+    
+    try {
+        await fetch(URL_SCRIPT, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify({tipo: 'excluir', linha: linha}) 
+        });
+        
+        // Recarrega o relatório após um pequeno delay para o Google processar
+        setTimeout(abrirRelatorio, 800);
+    } catch(e) {
+        alert("Erro ao excluir a linha.");
+    }
+}
         function filtrarTabela() {
             let f = document.getElementById("inputBusca").value.toUpperCase();
             document.querySelectorAll("#tabelaDados tr").forEach(tr => {
