@@ -74,9 +74,9 @@
             <section id="equipamentos" class="tab-content hidden bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Novo Material</div>
                 <div class="p-6 space-y-4">
-                    <input type="text" id="mat_nome" placeholder="Nome do Equipamento (Ex: Andaime 1m)" class="w-full border-2 p-3 rounded-lg">
+                    <input type="text" id="mat_nome" placeholder="Nome do Equipamento" class="w-full border-2 p-3 rounded-lg">
                     <input type="text" id="mat_pat" placeholder="Número de Patrimônio / ID" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="mat_val" oninput="mascaraMoeda(this)" placeholder="Valor Diária/Mês (Opcional)" class="w-full border-2 p-3 rounded-lg">
+                    <input type="text" id="mat_val" oninput="mascaraMoeda(this)" placeholder="Valor Diária/Mês" class="w-full border-2 p-3 rounded-lg">
                     <select id="mat_status" class="w-full border-2 p-3 rounded-lg font-semibold text-slate-700">
                         <option value="Disponível">Disponível</option>
                         <option value="Manutenção">Manutenção</option>
@@ -146,7 +146,7 @@
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        // --- CARREGAMENTO ---
+        // --- CARREGAMENTOS ---
         async function carregarEquipamentos() {
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Equipamentos");
@@ -157,7 +157,7 @@
                     const e = item.valores;
                     if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]}</option>`;
                 });
-            } catch(e) { console.log(e) }
+            } catch(e) {}
         }
 
         async function carregarClientes() {
@@ -172,7 +172,7 @@
             } catch(e) {}
         }
 
-        // --- SALVAMENTO ---
+        // --- SALVAMENTOS ---
         async function salvarLocacao() {
             let p = { 
                 tipo: 'locacao',
@@ -189,25 +189,13 @@
         }
 
         async function salvarCliente() {
-            let p = {
-                tipo: 'cliente',
-                nome: document.getElementById('cli_nome').value,
-                cpf: document.getElementById('cli_cpf').value,
-                telefone: document.getElementById('cli_tel').value,
-                endereco: document.getElementById('cli_end').value
-            };
+            let p = { tipo: 'cliente', nome: document.getElementById('cli_nome').value, cpf: document.getElementById('cli_cpf').value, telefone: document.getElementById('cli_tel').value, endereco: document.getElementById('cli_end').value };
             await enviar(p);
             document.getElementById('cli_nome').value = '';
         }
 
         async function salvarMaterial() {
-            let p = {
-                tipo: 'material',
-                nome: document.getElementById('mat_nome').value,
-                patrimonio: document.getElementById('mat_pat').value,
-                valor: document.getElementById('mat_val').value.replace(/\./g, "").replace(",", "."),
-                status: document.getElementById('mat_status').value
-            };
+            let p = { tipo: 'material', nome: document.getElementById('mat_nome').value, patrimonio: document.getElementById('mat_pat').value, valor: document.getElementById('mat_val').value.replace(/\./g, "").replace(",", "."), status: document.getElementById('mat_status').value };
             await enviar(p);
             document.getElementById('mat_nome').value = '';
         }
@@ -220,7 +208,7 @@
             } catch(e) { alert("Erro ao salvar."); }
         }
 
-        // --- RELATÓRIO ---
+        // --- RELATÓRIO (AQUI ESTÁ A CORREÇÃO DOS BOTÕES) ---
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
@@ -263,7 +251,7 @@
                                 <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span>
                             </td>
                             <td class="p-4 text-center">
-                                <div class="flex flex-row justify-center gap-2">
+                                <div class="flex flex-row justify-center items-center gap-2">
                                     ${status === 'Ativo' ? `
                                         <button onclick="finalizarLocacao(${numLinha})" 
                                             class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">
@@ -271,7 +259,7 @@
                                         </button>
                                     ` : ''}
                                     <button onclick="excluirLocacao(${numLinha})" 
-                                        class="bg-red-50 text-red-600 border border-red-100 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">
+                                        class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">
                                         Excluir
                                     </button>
                                 </div>
@@ -290,19 +278,15 @@
         }
 
         async function finalizarLocacao(linha) {
-            if(!confirm("Deseja marcar esta locação como FINALIZADA?")) return;
+            if(!confirm("Deseja finalizar esta locação?")) return;
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) });
             setTimeout(abrirRelatorio, 800);
         }
 
         async function excluirLocacao(linha) {
-            if(!confirm("⚠️ ATENÇÃO!\n\nDeseja excluir permanentemente esta linha da planilha?")) return;
+            if(!confirm("⚠️ EXCLUIR DEFINITIVAMENTE?\nEsta ação removerá a linha da planilha.")) return;
             try {
-                await fetch(URL_SCRIPT, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    body: JSON.stringify({tipo: 'excluir', linha: linha}) 
-                });
+                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'excluir', linha: linha}) });
                 setTimeout(abrirRelatorio, 800);
             } catch(e) { alert("Erro ao excluir."); }
         }
