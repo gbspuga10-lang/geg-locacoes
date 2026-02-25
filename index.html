@@ -110,10 +110,17 @@
                 </div>
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
                     <div class="table-container">
-                        <table class="w-full text-left min-w-[700px]">
+                        <table class="w-full text-left min-w-[850px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
-                                    <th class="p-3">Cliente</th><th class="p-3">Equipamento</th><th class="p-3 text-center">Início</th><th class="p-3 text-center">Retorno</th><th class="p-3">Valor</th><th class="p-3 text-center">Status</th><th class="p-3 text-center">Ações</th>
+                                    <th class="p-3">Cliente</th>
+                                    <th class="p-3">Equipamento</th>
+                                    <th class="p-3 text-center">Início</th>
+                                    <th class="p-3 text-center">Retorno</th>
+                                    <th class="p-3">Valor</th>
+                                    <th class="p-3 text-center">Pagamento</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaDados" class="text-[12px] md:text-sm font-medium"></tbody>
@@ -126,21 +133,18 @@
 
     <script>
         // CONFIGURAÇÃO DE SEGURANÇA
-        const SENHA_ACESSO = "Geg@0612"; // <--- MUDE SUA SENHA AQUI
+        const SENHA_ACESSO = "Geg@0612";
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
         
         let listaGlobalClientes = [];
 
-        // Facilitador para celular: apertar "Enter" no teclado para entrar
         document.getElementById('inputSenha').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') verificarSenha();
         });
 
         window.onload = () => {
             const logado = localStorage.getItem('geg_autenticado');
-            if (logado === 'true') {
-                liberarSistema();
-            }
+            if (logado === 'true') { liberarSistema(); }
         };
 
         function verificarSenha() {
@@ -155,11 +159,9 @@
         }
 
         function liberarSistema() {
-            // Remove a tela de login e mostra o sistema (usando display block para garantir)
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('conteudoSistema').style.display = 'block';
-            carregarEquipamentos(); 
-            carregarClientes();
+            carregarEquipamentos(); carregarClientes();
         }
 
         function logout() {
@@ -167,7 +169,6 @@
             location.reload();
         }
 
-        // --- RESTANTE DAS FUNÇÕES IGUAIS ---
         function showTab(tabId) {
             const abas = document.getElementsByClassName('tab-content');
             for (let i = 0; i < abas.length; i++) abas[i].classList.add('hidden');
@@ -216,8 +217,6 @@
             if (c) {
                 document.getElementById('cpf').value = c[1] || "";
                 document.getElementById('endereco').value = c[3] || "";
-                document.getElementById('cpf').classList.add('bg-autofill');
-                document.getElementById('endereco').classList.add('bg-autofill');
             }
         }
 
@@ -254,7 +253,7 @@
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center animate-pulse font-black'>Sincronizando...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='8' class='p-10 text-center animate-pulse font-black text-slate-400'>Sincronizando...</td></tr>";
             let soma = 0, rua = 0, atraso = 0;
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
@@ -263,10 +262,15 @@
                 const hoje = new Date(); hoje.setHours(0,0,0,0);
                 dados.forEach(l => {
                     const status = l[7] || "Ativo";
+                    const pagamento = l[9] || "Pendente";
                     const valor = parseFloat(l[4]) || 0;
                     const dFim = new Date(l[6]); dFim.setHours(24,0,0,0);
                     const vencido = (status === "Ativo" && hoje > dFim);
+                    
                     if(status === "Ativo") { soma += valor; rua++; if(vencido) atraso++; }
+                    
+                    const corPg = pagamento === "Pago" ? "bg-green-100 text-green-700 border-green-200" : "bg-yellow-100 text-yellow-700 border-yellow-200";
+
                     const tr = document.createElement('tr');
                     tr.className = `border-b border-slate-50 hover:bg-orange-50 ${vencido ? 'bg-red-50' : ''}`;
                     tr.innerHTML = `
@@ -275,10 +279,15 @@
                         <td class="p-3 text-center text-xs text-slate-500">${new Date(l[5]).toLocaleDateString('pt-BR')}</td>
                         <td class="p-3 text-center text-xs text-slate-400">${new Date(l[6]).toLocaleDateString('pt-BR')}</td>
                         <td class="p-3 font-black">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="alternarPagamento(${l[8]}, '${pagamento}')" class="px-3 py-1 rounded-full border text-[10px] font-black transition active:scale-90 ${corPg}">
+                                ${pagamento.toUpperCase()}
+                            </button>
+                        </td>
                         <td class="p-3 text-center"><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === "Ativo" ? 'bg-slate-800 text-orange-400' : 'bg-gray-100 text-gray-400'}">${status}</span></td>
-                        <td class="p-3 text-center space-x-3">
-                            <button onclick='prepararEdicao(${JSON.stringify(l)})' class="p-2 opacity-60">📝</button>
-                            <button onclick="excluirLinha(${l[8]})" class="p-2 opacity-40">🗑️</button>
+                        <td class="p-3 text-center space-x-2">
+                            <button onclick='prepararEdicao(${JSON.stringify(l)})' class="p-1 opacity-60">📝</button>
+                            <button onclick="excluirLinha(${l[8]})" class="p-1 opacity-40">🗑️</button>
                             ${status === "Ativo" ? `<button onclick="finalizarLocacao(${l[8]})" class="text-[9px] font-black bg-orange-500 text-white px-2 py-1 rounded">FIM</button>` : ''}
                         </td>`;
                     tb.appendChild(tr);
@@ -287,6 +296,15 @@
                 document.getElementById('dashItens').innerText = rua;
                 document.getElementById('dashAtraso').innerText = atraso;
             } catch (e) { tb.innerHTML = "Erro ao carregar."; }
+        }
+
+        async function alternarPagamento(linha, statusAtual) {
+            const novo = statusAtual === "Pago" ? "Pendente" : "Pago";
+            if(!confirm(`Mudar pagamento para ${novo.toUpperCase()}?`)) return;
+            try {
+                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ tipo: 'pagamento', linha: linha, statusPagamento: novo }) });
+                abrirRelatorio();
+            } catch (e) { alert("Erro ao atualizar."); }
         }
 
         async function prepararEdicao(l) {
@@ -301,6 +319,7 @@
 
         async function excluirLinha(l) { if(confirm("Excluir?")) { await fetch(URL_SCRIPT, {method:'POST', mode:'no-cors', body:JSON.stringify({tipo:'excluir', linha:l})}); abrirRelatorio(); }}
         async function finalizarLocacao(l) { if(confirm("Finalizar?")) { await fetch(URL_SCRIPT, {method:'POST', mode:'no-cors', body:JSON.stringify({tipo:'finalizar', linha:l})}); abrirRelatorio(); }}
+        
         function filtrarTabela() {
             let f = document.getElementById("inputBusca").value.toUpperCase();
             let l = document.getElementById("tabelaDados").getElementsByTagName("tr");
