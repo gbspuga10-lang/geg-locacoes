@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GeG - Locações</title>
+    <title>GeG - Locações & Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .tab-content { transition: all 0.2s ease; }
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         input:focus, select:focus { border-color: #f97316 !important; outline: none; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
@@ -29,9 +31,10 @@
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <img src="logogg.jpeg" alt="GeG" class="h-12">
                 <div class="flex flex-wrap justify-center gap-4 items-center text-[10px] md:text-xs font-black uppercase">
+                    <button onclick="showTab('dashboard'); renderizarCharts();" class="text-orange-400 border border-orange-400 px-2 py-1 rounded">📊 Dashboard</button>
                     <button onclick="showTab('clientes')" class="hover:text-orange-400 transition">Clientes</button>
                     <button onclick="showTab('equipamentos')" class="hover:text-orange-400 transition">Materiais</button>
-                    <button onclick="abrirRelatorio()" class="text-orange-400 transition">Relatórios</button>
+                    <button onclick="abrirRelatorio()" class="hover:text-orange-400 transition">Relatórios</button>
                     <button onclick="logout()" class="text-red-400 transition">Sair</button>
                     <button onclick="showTab('locacao')" class="bg-orange-500 px-4 py-2 rounded text-white transition">+ Locação</button>
                 </div>
@@ -40,6 +43,48 @@
 
         <div class="container mx-auto p-2">
             
+            <section id="dashboard" class="tab-content hidden space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-md flex flex-wrap gap-4 items-end">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Filtrar Ano</label>
+                        <select id="filtroAno" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold"></select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Equipamento</label>
+                        <select id="filtroEquip" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold">
+                            <option value="Todos">Todos os Materiais</option>
+                        </select>
+                    </div>
+                    <button onclick="renderizarCharts()" class="bg-slate-100 p-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-200">🔄 Atualizar</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800 p-6 rounded-2xl text-white shadow-lg border-b-4 border-orange-500">
+                        <p class="text-xs font-bold opacity-70 uppercase">Faturamento Total (Período)</p>
+                        <h2 id="cardTotal" class="text-3xl font-black">R$ 0,00</h2>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-blue-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Total de Locações</p>
+                        <h2 id="cardQtd" class="text-3xl font-black text-slate-800">0</h2>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-green-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Ticket Médio</p>
+                        <h2 id="cardMedia" class="text-3xl font-black text-slate-800">R$ 0,00</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-4 rounded-2xl shadow-xl">
+                        <h3 class="text-center font-black text-slate-700 uppercase text-xs mb-4">Faturamento Mensal (R$)</h3>
+                        <div class="chart-container"><canvas id="chartMensal"></canvas></div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-xl">
+                        <h3 class="text-center font-black text-slate-700 uppercase text-xs mb-4">Receita por Equipamento</h3>
+                        <div class="chart-container"><canvas id="chartPizza"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
             <section id="locacao" class="tab-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Nova Locação</div>
                 <div class="p-6 space-y-4">
@@ -104,13 +149,7 @@
                         <table class="w-full text-left min-w-[950px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
-                                    <th class="p-4">Cliente</th>
-                                    <th class="p-4">Item</th>
-                                    <th class="p-4 text-center">Retorno</th>
-                                    <th class="p-4">Valor</th>
-                                    <th class="p-4 text-center">Pagamento</th>
-                                    <th class="p-4 text-center">Status</th>
-                                    <th class="p-4 text-center">Ações</th>
+                                    <th class="p-4">Cliente</th><th class="p-4">Item</th><th class="p-4 text-center">Retorno</th><th class="p-4">Valor</th><th class="p-4 text-center">Pagamento</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaDados" class="text-xs font-medium"></tbody>
@@ -124,14 +163,14 @@
     <script>
         const SENHA_ACESSO = "Geg@0612";
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
-        
+        let chartInstance1 = null;
+        let chartInstance2 = null;
+
         function verificarSenha() {
             if (document.getElementById('inputSenha').value === SENHA_ACESSO) {
                 localStorage.setItem('geg_autenticado', 'true');
                 liberarSistema();
-            } else { 
-                document.getElementById('erroSenha').classList.remove('hidden'); 
-            }
+            } else { document.getElementById('erroSenha').classList.remove('hidden'); }
         }
 
         window.onload = () => { if(localStorage.getItem('geg_autenticado') === 'true') liberarSistema(); };
@@ -140,13 +179,97 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('conteudoSistema').style.display = 'block';
             carregarEquipamentos(); carregarClientes();
+            // Inicia os anos no filtro do dashboard
+            const anoSel = document.getElementById('filtroAno');
+            const anoAtual = new Date().getFullYear();
+            for(let i=0; i<3; i++) { let a = anoAtual - i; anoSel.innerHTML += `<option value="${a}">${a}</option>`; }
         }
 
         function logout() { localStorage.removeItem('geg_autenticado'); location.reload(); }
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        // --- CARREGAMENTOS ---
+        // --- DASHBOARD LOGIC ---
+        async function renderizarCharts() {
+            const filtroAno = document.getElementById('filtroAno').value;
+            const filtroEquip = document.getElementById('filtroEquip').value;
+            
+            try {
+                const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
+                const dados = await r.json();
+                
+                let meses = Array(12).fill(0);
+                let equipMap = {};
+                let totalGeral = 0;
+                let contagem = 0;
+                let listaEquips = new Set();
+
+                dados.forEach(item => {
+                    const l = item.valores;
+                    if(!l[0] || l[0] === "Nome") return;
+
+                    const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
+                    const equipamento = l[3];
+                    listaEquips.add(equipamento);
+
+                    // Tratar Data Inicial (Coluna F / index 5)
+                    let dIni = new Date(l[5]);
+                    if(isNaN(dIni.getTime())) {
+                        const p = String(l[5]).split('/');
+                        dIni = new Date(p[2], p[1]-1, p[0]);
+                    }
+
+                    const ano = dIni.getFullYear();
+                    const mes = dIni.getMonth();
+
+                    // Aplicar Filtros
+                    if(ano == filtroAno) {
+                        if(filtroEquip === "Todos" || filtroEquip === equipamento) {
+                            meses[mes] += valor;
+                            equipMap[equipamento] = (equipMap[equipamento] || 0) + valor;
+                            totalGeral += valor;
+                            contagem++;
+                        }
+                    }
+                });
+
+                // Atualizar Filtro de Equipamentos (sem duplicar)
+                const fEq = document.getElementById('filtroEquip');
+                if(fEq.options.length <= 1) {
+                    listaEquips.forEach(e => fEq.innerHTML += `<option value="${e}">${e}</option>`);
+                }
+
+                // Atualizar Cards
+                document.getElementById('cardTotal').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+                document.getElementById('cardQtd').innerText = contagem;
+                document.getElementById('cardMedia').innerText = `R$ ${(contagem > 0 ? totalGeral/contagem : 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+
+                // Gráfico de Barras
+                if(chartInstance1) chartInstance1.destroy();
+                chartInstance1 = new Chart(document.getElementById('chartMensal'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+                        datasets: [{ label: 'Receita R$', data: meses, backgroundColor: '#f97316' }]
+                    },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                // Gráfico de Pizza
+                if(chartInstance2) chartInstance2.destroy();
+                chartInstance2 = new Chart(document.getElementById('chartPizza'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(equipMap),
+                        datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#64748b','#94a3b8','#f97316'] }]
+                    },
+                    options: { maintainAspectRatio: false }
+                });
+
+            } catch(e) { console.error("Erro no Dashboard", e); }
+        }
+
+        // --- CARREGAMENTO ---
         async function carregarEquipamentos() {
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Equipamentos");
@@ -172,18 +295,9 @@
             } catch(e) {}
         }
 
-        // --- SALVAMENTOS ---
+        // --- SALVAMENTO ---
         async function salvarLocacao() {
-            let p = { 
-                tipo: 'locacao',
-                nome: document.getElementById('loc_nome').value,
-                cpf: document.getElementById('loc_cpf').value,
-                endereco: document.getElementById('loc_endereco').value,
-                item: document.getElementById('loc_item').value,
-                valor: document.getElementById('loc_valor').value.replace(/\./g, "").replace(",", "."),
-                dataInicio: document.getElementById('loc_inicio').value,
-                dataFim: document.getElementById('loc_fim').value
-            };
+            let p = { tipo: 'locacao', nome: document.getElementById('loc_nome').value, cpf: document.getElementById('loc_cpf').value, endereco: document.getElementById('loc_endereco').value, item: document.getElementById('loc_item').value, valor: document.getElementById('loc_valor').value.replace(/\./g, "").replace(",", "."), dataInicio: document.getElementById('loc_inicio').value, dataFim: document.getElementById('loc_fim').value };
             await enviar(p);
             document.getElementById('loc_nome').value = '';
         }
@@ -208,7 +322,6 @@
             } catch(e) { alert("Erro ao salvar."); }
         }
 
-        // --- RELATÓRIO (AQUI ESTÁ A CORREÇÃO DOS BOTÕES) ---
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
@@ -224,11 +337,9 @@
                     const l = item.valores;
                     const numLinha = item.numeroLinha;
                     if(!l[0] || l[0] === "Nome") return;
-                    
                     const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
                     const status = l[7] || "Ativo";
                     const pagamento = l[9] || l[8] || "Pendente"; 
-                    
                     let dFim = new Date(l[6]);
                     if(isNaN(dFim.getTime())) {
                         const p = String(l[6]).split('/');
@@ -252,16 +363,8 @@
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex flex-row justify-center items-center gap-2">
-                                    ${status === 'Ativo' ? `
-                                        <button onclick="finalizarLocacao(${numLinha})" 
-                                            class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">
-                                            Finalizar
-                                        </button>
-                                    ` : ''}
-                                    <button onclick="excluirLocacao(${numLinha})" 
-                                        class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">
-                                        Excluir
-                                    </button>
+                                    ${status === 'Ativo' ? `<button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">Finalizar</button>` : ''}
+                                    <button onclick="excluirLocacao(${numLinha})" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">Excluir</button>
                                 </div>
                             </td>
                         </tr>`;
@@ -284,11 +387,11 @@
         }
 
         async function excluirLocacao(linha) {
-            if(!confirm("⚠️ EXCLUIR DEFINITIVAMENTE?\nEsta ação removerá a linha da planilha.")) return;
+            if(!confirm("⚠️ EXCLUIR DEFINITIVAMENTE?")) return;
             try {
                 await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'excluir', linha: linha}) });
                 setTimeout(abrirRelatorio, 800);
-            } catch(e) { alert("Erro ao excluir."); }
+            } catch(e) {}
         }
 
         function filtrarTabela() {
