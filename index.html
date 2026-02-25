@@ -46,13 +46,21 @@
             <section id="dashboard" class="tab-content hidden space-y-6">
                 <div class="bg-white p-4 rounded-xl shadow-md flex flex-wrap gap-4 items-end">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase">Filtrar Ano</label>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Ano</label>
                         <select id="filtroAno" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold"></select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase">Equipamento</label>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Material</label>
                         <select id="filtroEquip" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold">
-                            <option value="Todos">Todos os Materiais</option>
+                            <option value="Todos">Todos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase">Pagamento</label>
+                        <select id="filtroPagto" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold">
+                            <option value="Todos">Todos</option>
+                            <option value="Pago">Pago</option>
+                            <option value="Pendente">Pendente</option>
                         </select>
                     </div>
                     <button onclick="renderizarCharts()" class="bg-slate-100 p-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-200">🔄 Atualizar</button>
@@ -60,11 +68,11 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-slate-800 p-6 rounded-2xl text-white shadow-lg border-b-4 border-orange-500">
-                        <p class="text-xs font-bold opacity-70 uppercase">Faturamento Total (Período)</p>
+                        <p class="text-xs font-bold opacity-70 uppercase">Receita (Período)</p>
                         <h2 id="cardTotal" class="text-3xl font-black">R$ 0,00</h2>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-blue-500">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Total de Locações</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase">Qtd Locações</p>
                         <h2 id="cardQtd" class="text-3xl font-black text-slate-800">0</h2>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-green-500">
@@ -179,7 +187,6 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('conteudoSistema').style.display = 'block';
             carregarEquipamentos(); carregarClientes();
-            // Inicia os anos no filtro do dashboard
             const anoSel = document.getElementById('filtroAno');
             const anoAtual = new Date().getFullYear();
             for(let i=0; i<3; i++) { let a = anoAtual - i; anoSel.innerHTML += `<option value="${a}">${a}</option>`; }
@@ -189,10 +196,11 @@
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        // --- DASHBOARD LOGIC ---
+        // --- DASHBOARD LOGIC COM FILTRO DE PAGAMENTO ---
         async function renderizarCharts() {
-            const filtroAno = document.getElementById('filtroAno').value;
-            const filtroEquip = document.getElementById('filtroEquip').value;
+            const fAno = document.getElementById('filtroAno').value;
+            const fEquip = document.getElementById('filtroEquip').value;
+            const fPagto = document.getElementById('filtroPagto').value;
             
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
@@ -209,67 +217,61 @@
                     if(!l[0] || l[0] === "Nome") return;
 
                     const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const equipamento = l[3];
-                    listaEquips.add(equipamento);
+                    const equip = l[3];
+                    const pagtoStatus = l[9] || l[8] || "Pendente"; 
+                    listaEquips.add(equip);
 
-                    // Tratar Data Inicial (Coluna F / index 5)
                     let dIni = new Date(l[5]);
                     if(isNaN(dIni.getTime())) {
                         const p = String(l[5]).split('/');
                         dIni = new Date(p[2], p[1]-1, p[0]);
                     }
 
-                    const ano = dIni.getFullYear();
-                    const mes = dIni.getMonth();
-
-                    // Aplicar Filtros
-                    if(ano == filtroAno) {
-                        if(filtroEquip === "Todos" || filtroEquip === equipamento) {
-                            meses[mes] += valor;
-                            equipMap[equipamento] = (equipMap[equipamento] || 0) + valor;
-                            totalGeral += valor;
-                            contagem++;
+                    // APLICAÇÃO DOS FILTROS (ANO + EQUIPAMENTO + PAGAMENTO)
+                    if(dIni.getFullYear() == fAno) {
+                        if(fEquip === "Todos" || fEquip === equip) {
+                            if(fPagto === "Todos" || fPagto === pagtoStatus) {
+                                meses[dIni.getMonth()] += valor;
+                                equipMap[equip] = (equipMap[equip] || 0) + valor;
+                                totalGeral += valor;
+                                contagem++;
+                            }
                         }
                     }
                 });
 
-                // Atualizar Filtro de Equipamentos (sem duplicar)
                 const fEq = document.getElementById('filtroEquip');
                 if(fEq.options.length <= 1) {
                     listaEquips.forEach(e => fEq.innerHTML += `<option value="${e}">${e}</option>`);
                 }
 
-                // Atualizar Cards
                 document.getElementById('cardTotal').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('cardQtd').innerText = contagem;
                 document.getElementById('cardMedia').innerText = `R$ ${(contagem > 0 ? totalGeral/contagem : 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 
-                // Gráfico de Barras
                 if(chartInstance1) chartInstance1.destroy();
                 chartInstance1 = new Chart(document.getElementById('chartMensal'), {
                     type: 'bar',
                     data: {
                         labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
-                        datasets: [{ label: 'Receita R$', data: meses, backgroundColor: '#f97316' }]
+                        datasets: [{ label: 'R$', data: meses, backgroundColor: '#f97316' }]
                     },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
 
-                // Gráfico de Pizza
                 if(chartInstance2) chartInstance2.destroy();
                 chartInstance2 = new Chart(document.getElementById('chartPizza'), {
                     type: 'doughnut',
                     data: {
                         labels: Object.keys(equipMap),
-                        datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#64748b','#94a3b8','#f97316'] }]
+                        datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#64748b','#f97316','#fb923c','#fdba74'] }]
                     },
                     options: { maintainAspectRatio: false }
                 });
-
-            } catch(e) { console.error("Erro no Dashboard", e); }
+            } catch(e) {}
         }
 
-        // --- CARREGAMENTO ---
+        // --- RESTANTE DAS FUNÇÕES ---
         async function carregarEquipamentos() {
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Equipamentos");
@@ -295,7 +297,6 @@
             } catch(e) {}
         }
 
-        // --- SALVAMENTO ---
         async function salvarLocacao() {
             let p = { tipo: 'locacao', nome: document.getElementById('loc_nome').value, cpf: document.getElementById('loc_cpf').value, endereco: document.getElementById('loc_endereco').value, item: document.getElementById('loc_item').value, valor: document.getElementById('loc_valor').value.replace(/\./g, "").replace(",", "."), dataInicio: document.getElementById('loc_inicio').value, dataFim: document.getElementById('loc_fim').value };
             await enviar(p);
@@ -332,7 +333,6 @@
                 tb.innerHTML = "";
                 let soma = 0, atrasos = 0;
                 const hoje = new Date(); hoje.setHours(0,0,0,0);
-
                 dados.forEach(item => {
                     const l = item.valores;
                     const numLinha = item.numeroLinha;
@@ -348,7 +348,6 @@
                     dFim.setHours(23,59,59,0);
                     const isVencido = (status === "Ativo" && hoje > dFim);
                     if(status === "Ativo") { soma += valor; if(isVencido) atrasos++; }
-
                     tb.innerHTML += `
                         <tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''} transition">
                             <td class="p-4 font-bold text-slate-800">${l[0]}</td>
@@ -371,7 +370,7 @@
                 });
                 document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
-            } catch(e) { tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center text-red-500'>Erro ao carregar dados.</td></tr>"; }
+            } catch(e) {}
         }
 
         async function mudarPagamento(linha, statusAtual) {
