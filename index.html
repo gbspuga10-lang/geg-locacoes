@@ -8,7 +8,6 @@
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .tab-content { transition: all 0.2s ease; }
-        input:focus, select:focus { border-color: #f97316 !important; outline: none; ring: 2px; ring-color: #f97316; }
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e293b; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
     </style>
@@ -18,9 +17,8 @@
     <div id="loginOverlay">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
             <img src="logogg.jpeg" alt="GeG" class="h-20 mx-auto mb-6">
-            <h2 class="text-slate-800 font-black uppercase tracking-widest mb-4">Acesso Restrito</h2>
-            <input type="password" id="inputSenha" placeholder="Digite a senha" class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center">
-            <button type="button" onclick="verificarSenha()" class="w-full bg-orange-500 text-white font-black py-4 rounded-lg uppercase">Entrar</button>
+            <input type="password" id="inputSenha" placeholder="Senha" class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center outline-none focus:border-orange-500">
+            <button onclick="verificarSenha()" class="w-full bg-orange-500 text-white font-black py-4 rounded-lg uppercase shadow-lg">Entrar</button>
             <p id="erroSenha" class="text-red-500 text-xs mt-3 font-bold hidden">Senha incorreta!</p>
         </div>
     </div>
@@ -29,67 +27,62 @@
         <nav class="bg-slate-800 text-white p-3 shadow-xl mb-4 border-b-4 border-orange-500 sticky top-0 z-50">
             <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
                 <img src="logogg.jpeg" alt="GeG" class="h-12">
-                <div class="flex flex-wrap justify-center gap-3 items-center text-[10px] md:text-xs">
-                    <button onclick="showTab('clientes')" class="hover:text-orange-400 font-bold uppercase">Clientes</button>
-                    <button onclick="showTab('equipamentos')" class="hover:text-orange-400 font-bold uppercase">Materiais</button>
-                    <button onclick="abrirRelatorio()" class="hover:text-orange-400 font-bold uppercase">Relatórios</button>
+                <div class="flex flex-wrap justify-center gap-4 items-center text-[10px] md:text-xs">
+                    <button onclick="showTab('clientes')" class="font-bold uppercase">Clientes</button>
+                    <button onclick="showTab('equipamentos')" class="font-bold uppercase">Materiais</button>
+                    <button onclick="abrirRelatorio()" class="font-bold uppercase border-orange-500 text-orange-400">Relatórios</button>
                     <button onclick="logout()" class="text-red-400 font-bold uppercase">Sair</button>
-                    <button onclick="showTab('locacao')" class="bg-orange-500 text-white px-4 py-2 rounded font-black uppercase">+ Locação</button>
+                    <button onclick="showTab('locacao')" class="bg-orange-500 px-4 py-2 rounded font-black uppercase">+ Locação</button>
                 </div>
             </div>
         </nav>
 
-        <div class="container mx-auto p-2 md:p-4">
+        <div class="container mx-auto p-2">
             <section id="locacao" class="tab-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
                 <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Registrar Locação</div>
-                <div class="p-4 md:p-8">
-                    <form id="formLocacao" class="space-y-4" onsubmit="return false;">
-                        <input type="text" id="nome" list="listaClientes" oninput="preencherDadosCliente(this.value)" placeholder="Nome do Cliente" class="w-full border-2 border-slate-200 p-3 rounded-lg">
-                        <datalist id="listaClientes"></datalist>
-                        <input type="text" id="endereco" placeholder="Endereço de Entrega" class="w-full border-2 border-slate-200 p-3 rounded-lg">
-                        <select id="item" class="w-full border-2 border-slate-200 p-3 rounded-lg font-semibold"></select>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[10px] font-bold text-slate-400">INÍCIO</label><input type="date" id="dataInicio" class="w-full border-2 border-slate-200 p-3 rounded-lg"></div>
-                            <div><label class="text-[10px] font-bold text-slate-400">RETORNO</label><input type="date" id="dataFim" class="w-full border-2 border-slate-200 p-3 rounded-lg"></div>
-                        </div>
-                        <div class="relative"><span class="absolute left-3 top-3 text-slate-400 font-bold">R$</span><input type="text" id="valor" oninput="mascaraMoeda(this)" placeholder="0,00" class="w-full border-2 border-slate-200 p-3 pl-10 rounded-lg font-black text-xl"></div>
-                        <button type="button" onclick="salvar('locacao')" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase">Lançar Locação</button>
-                    </form>
+                <div class="p-6 space-y-4">
+                    <input type="text" id="nome" list="listaClientes" oninput="preencherDadosCliente(this.value)" placeholder="Nome do Cliente" class="w-full border-2 p-3 rounded-lg">
+                    <datalist id="listaClientes"></datalist>
+                    <input type="text" id="cpf" placeholder="CPF/CNPJ" class="w-full border-2 p-3 rounded-lg">
+                    <input type="text" id="endereco" placeholder="Endereço de Entrega" class="w-full border-2 p-3 rounded-lg">
+                    <select id="item" class="w-full border-2 p-3 rounded-lg font-semibold"></select>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-[10px] font-bold text-slate-400">INÍCIO</label><input type="date" id="dataInicio" class="w-full border-2 p-3 rounded-lg"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400">RETORNO</label><input type="date" id="dataFim" class="w-full border-2 p-3 rounded-lg"></div>
+                    </div>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-slate-400 font-bold">R$</span>
+                        <input type="text" id="valor" oninput="mascaraMoeda(this)" placeholder="0,00" class="w-full border-2 p-3 pl-10 rounded-lg font-black text-xl text-orange-600">
+                    </div>
+                    <button onclick="salvar('locacao')" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase">Salvar Locação</button>
                 </div>
             </section>
 
             <section id="relatorios" class="tab-content hidden">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <div class="bg-slate-700 p-3 rounded-lg border-l-4 border-orange-500 text-white"><p class="text-[8px] font-black uppercase">Receita Ativa</p><h3 id="dashTotal" class="text-sm md:text-2xl font-black">R$ 0,00</h3></div>
-                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500"><p class="text-[8px] font-black uppercase">Atrasos</p><h3 id="dashAtraso" class="text-sm md:text-2xl font-black text-red-600">0</h3></div>
-                    <div class="bg-slate-700 p-2 col-span-2 flex items-center"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar..." class="w-full bg-slate-600 text-white rounded p-2 text-xs"></div>
+                    <div class="bg-white p-3 rounded-lg border-l-4 border-red-500 shadow-md"><p class="text-[8px] font-black uppercase text-red-600">Atrasos</p><h3 id="dashAtraso" class="text-sm md:text-2xl font-black text-red-600">0</h3></div>
+                    <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar cliente ou item..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none"></div>
                 </div>
-                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
                     <div class="table-container">
-                        <table class="w-full text-left min-w-[800px]">
-                            <thead class="bg-slate-100 text-[10px] font-black uppercase">
-                                <tr><th class="p-3">Cliente</th><th class="p-3">Equipamento</th><th class="p-3 text-center">Retorno</th><th class="p-3">Valor</th><th class="p-3 text-center">Status</th><th class="p-3 text-center">Ações</th></tr>
+                        <table class="w-full text-left min-w-[900px]">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4">Item (D)</th>
+                                    <th class="p-4 text-center">Retorno (G)</th>
+                                    <th class="p-4">Valor (E)</th>
+                                    <th class="p-4 text-center">Pagamento (I)</th>
+                                    <th class="p-4 text-center">Status (H)</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
                             </thead>
-                            <tbody id="tabelaDados" class="text-xs"></tbody>
+                            <tbody id="tabelaDados" class="text-xs font-medium"></tbody>
                         </table>
                     </div>
                 </div>
-            </section>
-            
-            <section id="clientes" class="tab-content hidden bg-white p-4 rounded-lg max-w-2xl mx-auto">
-                <h2 class="font-black mb-4">Novo Cliente</h2>
-                <form id="formCliente" class="space-y-3">
-                    <input type="text" id="cli_nome" placeholder="Nome" class="w-full border-2 p-2 rounded">
-                    <button type="button" onclick="salvar('cliente')" class="w-full bg-slate-800 text-white p-3 rounded font-bold uppercase">Cadastrar</button>
-                </form>
-            </section>
-
-            <section id="equipamentos" class="tab-content hidden bg-white p-4 rounded-lg max-w-2xl mx-auto">
-                <h2 class="font-black mb-4">Novo Material</h2>
-                <form id="formMaterial" class="space-y-3">
-                    <input type="text" id="mat_nome" placeholder="Nome do Equipamento" class="w-full border-2 p-2 rounded">
-                    <button type="button" onclick="salvar('material')" class="w-full bg-slate-800 text-white p-3 rounded font-bold uppercase">Salvar</button>
-                </form>
             </section>
         </div>
     </div>
@@ -97,7 +90,7 @@
     <script>
         const SENHA_ACESSO = "Geg@0612";
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
-
+        
         function verificarSenha() {
             if (document.getElementById('inputSenha').value === SENHA_ACESSO) {
                 localStorage.setItem('geg_autenticado', 'true');
@@ -114,7 +107,7 @@
         }
 
         function logout() { localStorage.removeItem('geg_autenticado'); location.reload(); }
-        function showTab(id) { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+        function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
         async function carregarEquipamentos() {
@@ -123,8 +116,8 @@
                 const dados = await r.json();
                 const sel = document.getElementById('item');
                 sel.innerHTML = '<option value="">Selecione o Material...</option>';
-                dados.forEach(e => { if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]} (${e[1]})</option>`; });
-            } catch(e) { console.error("Erro materiais:", e); }
+                dados.forEach(e => { if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]}</option>`; });
+            } catch(e) {}
         }
 
         async function carregarClientes() {
@@ -133,13 +126,13 @@
                 const dados = await r.json();
                 const dl = document.getElementById('listaClientes'); dl.innerHTML = '';
                 dados.forEach(c => { if(c[0]) dl.innerHTML += `<option value="${c[0]}">`; });
-            } catch(e) { }
+            } catch(e) {}
         }
 
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='6' class='p-10 text-center font-bold text-slate-400'>Sincronizando...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center font-black text-slate-400'>Carregando dados da aba Locações...</td></tr>";
             
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
@@ -149,71 +142,76 @@
                 let soma = 0, atrasos = 0;
                 const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-                dados.forEach(l => {
-                    try {
-                        if(!l[0] || l[0] === "Nome") return; // Ignora cabeçalho ou linhas vazias
+                dados.forEach((l, index) => {
+                    if(!l[0] || l[0] === "Nome") return;
 
+                    try {
+                        const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
                         const status = l[7] || "Ativo";
-                        const valor = parseFloat(l[4]) || 0;
+                        const pagamento = l[8] || "Pendente";
                         
-                        // TRATAMENTO SEGURO DE DATA
-                        let dataFim;
-                        if (l[6] instanceof Date) { dataFim = l[6]; } 
-                        else {
-                            let dataStr = String(l[6]);
-                            if(dataStr.includes('/')) {
-                                let pts = dataStr.split('/');
-                                dataFim = new Date(pts[2], pts[1]-1, pts[0]);
-                            } else { dataFim = new Date(dataStr); }
+                        // Tratamento de Data (Coluna G = índice 6)
+                        let dFimRaw = l[6];
+                        let dFim = new Date(dFimRaw);
+                        if(isNaN(dFim.getTime())) {
+                            const p = String(dFimRaw).split('/');
+                            dFim = new Date(p[2], p[1]-1, p[0]);
                         }
-                        
-                        const isVencido = (status === "Ativo" && hoje > dataFim);
+                        dFim.setHours(23,59,59,0);
+
+                        const isVencido = (status === "Ativo" && hoje > dFim);
                         if(status === "Ativo") { soma += valor; if(isVencido) atrasos++; }
 
                         tb.innerHTML += `
-                            <tr class="border-b ${isVencido ? 'bg-red-50' : ''}">
-                                <td class="p-3 font-bold">${l[0]}</td>
-                                <td class="p-3">${l[3]}</td>
-                                <td class="p-3 text-center">${dataFim.toLocaleDateString('pt-BR')}</td>
-                                <td class="p-3 font-bold">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                                <td class="p-3 text-center">
-                                    <span class="px-2 py-1 rounded text-[9px] font-black ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-100 text-gray-400'}">${status}</span>
+                            <tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''}">
+                                <td class="p-4 font-bold text-slate-800">${l[0]}</td>
+                                <td class="p-4 text-slate-600">${l[3]}</td>
+                                <td class="p-4 text-center font-mono">${dFim.toLocaleDateString('pt-BR')}</td>
+                                <td class="p-4 font-black text-slate-700">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                                <td class="p-4 text-center">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${pagamento}</span>
                                 </td>
-                                <td class="p-3 text-center">
-                                    <button onclick="finalizarLocacao(${l[8]})" class="bg-orange-500 text-white px-2 py-1 rounded text-[10px] font-bold">FIM</button>
+                                <td class="p-4 text-center">
+                                    <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <button onclick="finalizarLocacao(${index + 1})" class="bg-orange-500 text-white px-3 py-1 rounded font-black text-[10px]">FIM</button>
                                 </td>
                             </tr>`;
-                    } catch(e) { console.error("Erro na linha:", e); }
+                    } catch(e) {}
                 });
 
                 document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
 
-            } catch(e) { 
-                tb.innerHTML = "<tr><td colspan='6' class='p-10 text-center text-red-500'>Erro ao carregar. Verifique a conexão.</td></tr>";
+            } catch(e) {
+                tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center text-red-500'>Erro ao carregar. Verifique se a aba chama-se exatamente 'Locacoes'.</td></tr>";
             }
         }
 
         async function salvar(tipo) {
-            let payload = { tipo: tipo };
-            if (tipo === 'locacao') {
-                payload.nome = document.getElementById('nome').value;
-                payload.item = document.getElementById('item').value;
-                payload.valor = document.getElementById('valor').value.replace(/\./g, "").replace(",", ".");
-                payload.dataInicio = document.getElementById('dataInicio').value;
-                payload.dataFim = document.getElementById('dataFim').value;
-                payload.endereco = document.getElementById('endereco').value;
-            }
-            // ... outros tipos (cliente/material) simplificados
+            let payload = { 
+                tipo: tipo,
+                nome: document.getElementById('nome').value,
+                cpf: document.getElementById('cpf').value,
+                endereco: document.getElementById('endereco').value,
+                item: document.getElementById('item').value,
+                valor: document.getElementById('valor').value.replace(/\./g, "").replace(",", "."),
+                dataInicio: document.getElementById('dataInicio').value,
+                dataFim: document.getElementById('dataFim').value,
+                status: "Ativo",
+                pagamento: "Pendente"
+            };
+
             try {
                 await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("✅ Sucesso!"); 
-                if(tipo === 'locacao') document.getElementById('formLocacao').reset();
+                alert("✅ Registrado com sucesso!");
+                document.getElementById('formLocacao').reset();
             } catch(e) { alert("Erro ao salvar."); }
         }
 
         async function finalizarLocacao(linha) {
-            if(!confirm("Finalizar locação?")) return;
+            if(!confirm("Deseja finalizar?")) return;
             await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) });
             abrirRelatorio();
         }
