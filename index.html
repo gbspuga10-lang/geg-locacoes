@@ -19,7 +19,7 @@
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
 
     <div id="loginOverlay">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-sm:w-full max-w-sm text-center">
             <img src="logogg.jpeg" alt="GeG" class="h-20 mx-auto mb-6">
             <input type="password" id="inputSenha" placeholder="Senha de Acesso" class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center">
             <button onclick="verificarSenha()" class="w-full bg-orange-500 text-white font-black py-4 rounded-lg uppercase shadow-lg hover:bg-orange-600">Entrar</button>
@@ -96,7 +96,6 @@
                             </div>
                             <button onclick="adicionarItemCarrinho()" class="bg-slate-800 text-white px-6 rounded-lg font-black text-xl hover:bg-orange-500">+</button>
                         </div>
-                        
                         <div id="carrinhoItens" class="space-y-2"></div>
                     </div>
 
@@ -136,7 +135,24 @@
                     <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar cliente ou item..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none"></div>
                 </div>
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
-                    <div class="table-container"><table class="w-full text-left min-w-[950px]"><thead><tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b"><th class="p-4">Cliente</th><th class="p-4">Item</th><th class="p-4 text-center">Retorno</th><th class="p-4">Valor</th><th class="p-4 text-center">Pagamento</th><th class="p-4 text-center">Status</th><th class="p-4 text-center">Ações</th></tr></thead><tbody id="tabelaDados" class="text-xs font-medium"></tbody></table></div>
+                    <div class="table-container">
+                        <table class="w-full text-left min-w-[1100px]">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4">Item</th>
+                                    <th class="p-4 text-center">Qtd</th>
+                                    <th class="p-4 text-center">Início</th>
+                                    <th class="p-4 text-center">Retorno</th>
+                                    <th class="p-4">Valor Un.</th>
+                                    <th class="p-4 text-center">Pagamento</th>
+                                    <th class="p-4 text-center">Status</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaDados" class="text-xs font-medium"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
@@ -161,24 +177,19 @@
             carregarEquipamentos(); carregarClientes();
             const anoSel = document.getElementById('filtroAno');
             const anoAtual = new Date().getFullYear();
-            for(let i=0; i<3; i++) { let a = anoAtual - i; anoSel.innerHTML += `<option value="${a}">${a}</option>`; }
+            for(let i=0; i<3; i++) { let a = anoAtual - i; if(a) anoSel.innerHTML += `<option value="${a}">${a}</option>`; }
         }
 
         function logout() { localStorage.removeItem('geg_autenticado'); location.reload(); }
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        // --- LÓGICA DO CARRINHO COM QUANTIDADE ---
         function adicionarItemCarrinho() {
             const item = document.getElementById('loc_item').value;
             const valor = document.getElementById('loc_valor_temp').value;
             const qtd = document.getElementById('loc_qtd').value;
-            
-            if(!item || !valor || qtd < 1) return alert("Selecione o item, informe a quantidade e o valor unitário!");
-
+            if(!item || !valor || qtd < 1) return alert("Preencha item, quantidade e valor unitário!");
             carrinhoLocacao.push({ item: item, valor: valor, quantidade: qtd });
-            
-            // Limpa campos temporários
             document.getElementById('loc_valor_temp').value = '';
             document.getElementById('loc_qtd').value = '1';
             renderizarCarrinho();
@@ -193,18 +204,9 @@
             const container = document.getElementById('carrinhoItens');
             const btnSalvar = document.getElementById('btnSalvarLoc');
             container.innerHTML = '';
-            
             carrinhoLocacao.forEach((obj, index) => {
-                container.innerHTML += `
-                    <div class="item-badge">
-                        <span>
-                            <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full mr-2">${obj.quantidade}x</span>
-                            ${obj.item} - <span class="text-orange-600">R$ ${obj.valor} un.</span>
-                        </span>
-                        <button onclick="removerDoCarrinho(${index})" class="text-red-500 ml-4 font-black">Remover</button>
-                    </div>`;
+                container.innerHTML += `<div class="item-badge"><span><span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full mr-2">${obj.quantidade}x</span>${obj.item} - <span class="text-orange-600">R$ ${obj.valor} un.</span></span><button onclick="removerDoCarrinho(${index})" class="text-red-500 ml-4 font-black">Remover</button></div>`;
             });
-
             if(carrinhoLocacao.length > 0) btnSalvar.classList.remove('hidden');
             else btnSalvar.classList.add('hidden');
         }
@@ -215,39 +217,23 @@
             const end = document.getElementById('loc_endereco').value;
             const ini = document.getElementById('loc_inicio').value;
             const fim = document.getElementById('loc_fim').value;
-
             if(!nome || !ini || !fim) return alert("Preencha cliente e datas!");
-
             const btn = document.getElementById('btnSalvarLoc');
-            btn.innerText = "Lançando dados... aguarde";
-            btn.disabled = true;
+            btn.innerText = "Processando..."; btn.disabled = true;
 
             for (let itemLoc of carrinhoLocacao) {
-                // Aqui o sistema envia a informação da quantidade. 
-                // Nota: O seu Google Script deve estar preparado para receber 'quantidade' se você quiser salvá-la numa coluna específica.
-                let p = { 
-                    tipo: 'locacao', 
-                    nome: nome, cpf: cpf, endereco: end, 
-                    item: itemLoc.item, 
-                    quantidade: itemLoc.quantidade, 
-                    valor: itemLoc.valor.replace(/\./g, "").replace(",", "."), 
-                    dataInicio: ini, dataFim: fim 
-                };
+                let p = { tipo: 'locacao', nome: nome, cpf: cpf, endereco: end, item: itemLoc.item, quantidade: itemLoc.quantidade, valor: itemLoc.valor.replace(/\./g, "").replace(",", "."), dataInicio: ini, dataFim: fim };
                 await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
             }
-
-            alert("✅ Locação registrada com sucesso!");
+            alert("✅ Locação registrada!");
             carrinhoLocacao = [];
             document.getElementById('loc_nome').value = '';
-            document.getElementById('loc_cpf').value = '';
-            document.getElementById('loc_endereco').value = '';
             renderizarCarrinho();
-            btn.innerText = "Finalizar e Lançar Itens";
-            btn.disabled = false;
+            btn.innerText = "Finalizar e Lançar Itens"; btn.disabled = false;
             carregarEquipamentos();
         }
 
-        // --- DASHBOARD E CARREGAMENTOS (MESMA LÓGICA ANTERIOR) ---
+        // --- DASHBOARD (SOMA VALOR TOTAL CONSIDERANDO QTD) ---
         async function renderizarCharts() {
             const fAno = document.getElementById('filtroAno').value;
             const fEquip = document.getElementById('filtroEquip').value;
@@ -258,16 +244,18 @@
                 let meses = Array(12).fill(0), equipMap = {}, totalGeral = 0, contagem = 0, listaEquips = new Set();
                 dados.forEach(item => {
                     const l = item.valores; if(!l[0] || l[0] === "Nome") return;
-                    const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const equip = l[3]; const pagtoStatus = l[9] || l[8] || "Pendente"; 
+                    const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
+                    const qtd = parseFloat(l[9]) || 1; 
+                    const totalLinha = valorUn * qtd;
+                    const equip = l[3]; const pagtoStatus = l[8] || "Pendente"; 
                     listaEquips.add(equip);
                     let dIni = new Date(l[5]);
                     if(isNaN(dIni.getTime())) { const p = String(l[5]).split('/'); dIni = new Date(p[2], p[1]-1, p[0]); }
                     if(dIni.getFullYear() == fAno) {
                         if(fEquip === "Todos" || fEquip === equip) {
                             if(fPagto === "Todos" || fPagto === pagtoStatus) {
-                                meses[dIni.getMonth()] += valor; equipMap[equip] = (equipMap[equip] || 0) + valor;
-                                totalGeral += valor; contagem++;
+                                meses[dIni.getMonth()] += totalLinha; equipMap[equip] = (equipMap[equip] || 0) + totalLinha;
+                                totalGeral += totalLinha; contagem++;
                             }
                         }
                     }
@@ -312,33 +300,73 @@
             alert("✅ Material cadastrado!"); document.getElementById('mat_nome').value = ''; carregarEquipamentos();
         }
 
+        // --- RELATÓRIO (MAPEMANENTO CORRIGIDO DAS COLUNAS) ---
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='7' class='p-10 text-center font-black text-slate-400'>Sincronizando...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='9' class='p-10 text-center font-black text-slate-400'>Sincronizando...</td></tr>";
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
                 const dados = await r.json();
-                tb.innerHTML = ""; let soma = 0, atrasos = 0; const hoje = new Date(); hoje.setHours(0,0,0,0);
+                tb.innerHTML = ""; let somaTotalAtiva = 0, atrasos = 0; const hoje = new Date(); hoje.setHours(0,0,0,0);
+                
                 dados.forEach(item => {
                     const l = item.valores; const numLinha = item.numeroLinha; if(!l[0] || l[0] === "Nome") return;
-                    const valor = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const status = l[7] || "Ativo"; const pagamento = l[9] || l[8] || "Pendente"; 
-                    let dFim = new Date(l[6]); if(isNaN(dFim.getTime())) { const p = String(l[6]).split('/'); dFim = new Date(p[2], p[1]-1, p[0]); }
-                    dFim.setHours(23,59,59,0); const isVencido = (status === "Ativo" && hoje > dFim);
-                    if(status === "Ativo") { soma += valor; if(isVencido) atrasos++; }
+                    
+                    const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
+                    const qtd = l[9] || 1; // Coluna J
+                    const totalLinha = valorUn * qtd;
+                    
+                    const statusLoc = l[7] || "Ativo";    // Coluna H
+                    const statusPagto = l[8] || "Pendente"; // Coluna I
+                    
+                    // Tratamento das Datas
+                    const formatarData = (d) => {
+                        let dataObj = new Date(d);
+                        if(isNaN(dataObj.getTime())) { const p = String(d).split('/'); dataObj = new Date(p[2], p[1]-1, p[0]); }
+                        return dataObj;
+                    };
+
+                    let dIni = formatarData(l[5]);
+                    let dFim = formatarData(l[6]);
+                    dFim.setHours(23,59,59,0); 
+
+                    const isVencido = (statusLoc === "Ativo" && hoje > dFim);
+                    if(statusLoc === "Ativo") { somaTotalAtiva += totalLinha; if(isVencido) atrasos++; }
+
                     tb.innerHTML += `<tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''} transition">
-                        <td class="p-4 font-bold text-slate-800">${l[0]}</td><td class="p-4 text-slate-600">${l[3]}</td><td class="p-4 text-center">${dFim.toLocaleDateString('pt-BR')}</td><td class="p-4 font-black">R$ ${valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                        <td class="p-4 text-center"><button onclick="mudarPagamento(${numLinha}, '${pagamento}')" class="px-2 py-1 rounded text-[10px] font-bold ${pagamento === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} transition">${pagamento}</button></td>
-                        <td class="p-4 text-center"><span class="px-2 py-1 rounded text-[9px] font-black uppercase ${status === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${status}</span></td>
-                        <td class="p-4 text-center"><div class="flex flex-row justify-center items-center gap-2">${status === 'Ativo' ? `<button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">Finalizar</button>` : ''}<button onclick="excluirLocacao(${numLinha})" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">Excluir</button></div></td>
+                        <td class="p-4 font-bold text-slate-800">${l[0]}</td>
+                        <td class="p-4 text-slate-600">${l[3]}</td>
+                        <td class="p-4 text-center font-bold text-orange-600">${qtd}</td>
+                        <td class="p-4 text-center">${dIni.toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 text-center">${dFim.toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 font-black">R$ ${valorUn.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="mudarPagamento(${numLinha}, '${statusPagto}')" class="px-3 py-1 rounded text-[10px] font-bold ${statusPagto === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} transition">
+                                ${statusPagto}
+                            </button>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${statusLoc === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${statusLoc}</span>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex flex-row justify-center items-center gap-2">
+                                ${statusLoc === 'Ativo' ? `<button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">Finalizar</button>` : ''}
+                                <button onclick="excluirLocacao(${numLinha})" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">Excluir</button>
+                            </div>
+                        </td>
                     </tr>`;
                 });
-                document.getElementById('dashTotal').innerText = `R$ ${soma.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+                document.getElementById('dashTotal').innerText = `R$ ${somaTotalAtiva.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
-        async function mudarPagamento(linha, statusAtual) { const novo = statusAtual === 'Pago' ? 'Pendente' : 'Pago'; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'pagamento', linha: linha, statusPagamento: novo}) }); setTimeout(abrirRelatorio, 500); }
+
+        async function mudarPagamento(linha, statusAtual) { 
+            const novo = statusAtual === 'Pago' ? 'Pendente' : 'Pago'; 
+            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'pagamento', linha: linha, statusPagamento: novo}) }); 
+            setTimeout(abrirRelatorio, 500); 
+        }
         async function finalizarLocacao(linha) { if(!confirm("Deseja finalizar esta locação?")) return; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) }); setTimeout(abrirRelatorio, 800); }
         async function excluirLocacao(linha) { if(!confirm("⚠️ EXCLUIR DEFINITIVAMENTE?")) return; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'excluir', linha: linha}) }); setTimeout(abrirRelatorio, 800); }
         function filtrarTabela() { let f = document.getElementById("inputBusca").value.toUpperCase(); document.querySelectorAll("#tabelaDados tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(f) ? "" : "none"; }); }
