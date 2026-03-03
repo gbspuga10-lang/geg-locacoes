@@ -19,7 +19,7 @@
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
 
     <div id="loginOverlay">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-sm:w-full max-w-sm text-center">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
             <img src="logogg.jpeg" alt="GeG" class="h-20 mx-auto mb-6">
             <input type="password" id="inputSenha" placeholder="Senha de Acesso" class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center">
             <button onclick="verificarSenha()" class="w-full bg-orange-500 text-white font-black py-4 rounded-lg uppercase shadow-lg hover:bg-orange-600">Entrar</button>
@@ -136,7 +136,7 @@
                 </div>
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
                     <div class="table-container">
-                        <table class="w-full text-left min-w-[1100px]">
+                        <table class="w-full text-left min-w-[1200px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
                                     <th class="p-4">Cliente</th>
@@ -145,6 +145,7 @@
                                     <th class="p-4 text-center">Início</th>
                                     <th class="p-4 text-center">Retorno</th>
                                     <th class="p-4">Valor Un.</th>
+                                    <th class="p-4">Valor Total</th>
                                     <th class="p-4 text-center">Pagamento</th>
                                     <th class="p-4 text-center">Status</th>
                                     <th class="p-4 text-center">Ações</th>
@@ -233,7 +234,6 @@
             carregarEquipamentos();
         }
 
-        // --- DASHBOARD (SOMA VALOR TOTAL CONSIDERANDO QTD) ---
         async function renderizarCharts() {
             const fAno = document.getElementById('filtroAno').value;
             const fEquip = document.getElementById('filtroEquip').value;
@@ -300,11 +300,11 @@
             alert("✅ Material cadastrado!"); document.getElementById('mat_nome').value = ''; carregarEquipamentos();
         }
 
-        // --- RELATÓRIO (MAPEMANENTO CORRIGIDO DAS COLUNAS) ---
+        // --- RELATÓRIO COM COLUNA VALOR TOTAL ---
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='9' class='p-10 text-center font-black text-slate-400'>Sincronizando...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='10' class='p-10 text-center font-black text-slate-400'>Sincronizando...</td></tr>";
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
                 const dados = await r.json();
@@ -314,13 +314,12 @@
                     const l = item.valores; const numLinha = item.numeroLinha; if(!l[0] || l[0] === "Nome") return;
                     
                     const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const qtd = l[9] || 1; // Coluna J
+                    const qtd = parseFloat(l[9]) || 1; 
                     const totalLinha = valorUn * qtd;
                     
-                    const statusLoc = l[7] || "Ativo";    // Coluna H
-                    const statusPagto = l[8] || "Pendente"; // Coluna I
+                    const statusLoc = l[7] || "Ativo";    
+                    const statusPagto = l[8] || "Pendente"; 
                     
-                    // Tratamento das Datas
                     const formatarData = (d) => {
                         let dataObj = new Date(d);
                         if(isNaN(dataObj.getTime())) { const p = String(d).split('/'); dataObj = new Date(p[2], p[1]-1, p[0]); }
@@ -341,6 +340,7 @@
                         <td class="p-4 text-center">${dIni.toLocaleDateString('pt-BR')}</td>
                         <td class="p-4 text-center">${dFim.toLocaleDateString('pt-BR')}</td>
                         <td class="p-4 font-black">R$ ${valorUn.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td class="p-4 font-black text-slate-800 bg-slate-50">R$ ${totalLinha.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                         <td class="p-4 text-center">
                             <button onclick="mudarPagamento(${numLinha}, '${statusPagto}')" class="px-3 py-1 rounded text-[10px] font-bold ${statusPagto === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} transition">
                                 ${statusPagto}
