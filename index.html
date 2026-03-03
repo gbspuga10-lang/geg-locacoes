@@ -14,6 +14,8 @@
         input:focus, select:focus { border-color: #f97316 !important; outline: none; }
         .chart-container { position: relative; height: 300px; width: 100%; }
         .item-badge { background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; border-left: 4px solid #f97316; }
+        /* Estilo para a sublinha de endereço/contato */
+        .sub-info { display: block; font-size: 10px; color: #64748b; font-weight: normal; margin-top: 2px; line-height: 1.2; }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
@@ -44,108 +46,25 @@
 
         <div class="container mx-auto p-2">
             
-            <section id="dashboard" class="tab-content hidden space-y-6">
-                <div class="bg-white p-4 rounded-xl shadow-md flex flex-wrap gap-4 items-end">
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase">Ano</label>
-                        <select id="filtroAno" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold"></select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase">Material</label>
-                        <select id="filtroEquip" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold"><option value="Todos">Todos</option></select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-slate-400 uppercase">Pagamento</label>
-                        <select id="filtroPagto" onchange="renderizarCharts()" class="border-2 p-2 rounded-lg text-sm font-bold">
-                            <option value="Todos">Todos</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option>
-                        </select>
-                    </div>
-                    <button onclick="renderizarCharts()" class="bg-slate-100 p-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-200">🔄 Atualizar</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-slate-800 p-6 rounded-2xl text-white shadow-lg border-b-4 border-orange-500"><p class="text-xs font-bold opacity-70 uppercase">Receita (Período)</p><h2 id="cardTotal" class="text-3xl font-black">R$ 0,00</h2></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-blue-500"><p class="text-xs font-bold text-slate-400 uppercase">Locações Efetuadas</p><h2 id="cardQtd" class="text-3xl font-black text-slate-800">0</h2></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase">Ticket Médio</p><h2 id="cardMedia" class="text-3xl font-black text-slate-800">R$ 0,00</h2></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-4 rounded-2xl shadow-xl"><h3 class="text-center font-black text-slate-700 uppercase text-xs mb-4">Faturamento Mensal (R$)</h3><div class="chart-container"><canvas id="chartMensal"></canvas></div></div>
-                    <div class="bg-white p-4 rounded-2xl shadow-xl"><h3 class="text-center font-black text-slate-700 uppercase text-xs mb-4">Receita por Equipamento</h3><div class="chart-container"><canvas id="chartPizza"></canvas></div></div>
-                </div>
-            </section>
-
-            <section id="locacao" class="tab-content bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
-                <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Nova Locação</div>
-                <div class="p-6 space-y-4">
-                    <input type="text" id="loc_nome" list="listaClientes" placeholder="Nome do Cliente" class="w-full border-2 p-3 rounded-lg">
-                    <datalist id="listaClientes"></datalist>
-                    <input type="text" id="loc_cpf" placeholder="CPF/CNPJ" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="loc_endereco" placeholder="Endereço de Entrega" class="w-full border-2 p-3 rounded-lg">
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Data Início</label><input type="date" id="loc_inicio" class="w-full border-2 p-3 rounded-lg text-sm"></div>
-                        <div><label class="text-[10px] font-black text-slate-400 uppercase">Data Retorno</label><input type="date" id="loc_fim" class="w-full border-2 p-3 rounded-lg text-sm"></div>
-                    </div>
-
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-2 text-center">Configurar Itens da Locação</label>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <select id="loc_item" class="flex-1 min-w-[150px] border-2 p-3 rounded-lg font-semibold text-sm"></select>
-                            <input type="number" id="loc_qtd" value="1" min="1" class="w-20 border-2 p-3 rounded-lg font-bold text-center text-sm" placeholder="Qtd">
-                            <div class="relative w-32">
-                                <input type="text" id="loc_valor_temp" oninput="mascaraMoeda(this)" placeholder="Valor Un." class="w-full border-2 p-3 rounded-lg font-bold text-orange-600 text-sm">
-                            </div>
-                            <button onclick="adicionarItemCarrinho()" class="bg-slate-800 text-white px-6 rounded-lg font-black text-xl hover:bg-orange-500">+</button>
-                        </div>
-                        <div id="carrinhoItens" class="space-y-2"></div>
-                    </div>
-
-                    <button onclick="salvarLocacao()" id="btnSalvarLoc" class="w-full bg-orange-500 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-600 shadow-lg mt-4 hidden">Finalizar e Lançar Itens</button>
-                </div>
-            </section>
-
-            <section id="clientes" class="tab-content hidden bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
-                <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Novo Cliente</div>
-                <div class="p-6 space-y-4">
-                    <input type="text" id="cli_nome" placeholder="Nome Completo / Razão Social" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="cli_cpf" placeholder="CPF ou CNPJ" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="cli_tel" placeholder="Telefone / WhatsApp" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="cli_end" placeholder="Endereço Completo" class="w-full border-2 p-3 rounded-lg">
-                    <button onclick="salvarCliente()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500 transition">Cadastrar Cliente</button>
-                </div>
-            </section>
-
-            <section id="equipamentos" class="tab-content hidden bg-white rounded-lg shadow-xl max-w-2xl mx-auto overflow-hidden">
-                <div class="bg-slate-800 p-3 text-center text-white font-black uppercase text-sm">Novo Material</div>
-                <div class="p-6 space-y-4">
-                    <input type="text" id="mat_nome" placeholder="Nome do Equipamento" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="mat_pat" placeholder="Número de Patrimônio / ID" class="w-full border-2 p-3 rounded-lg">
-                    <input type="text" id="mat_val" oninput="mascaraMoeda(this)" placeholder="Valor Diária/Mês" class="w-full border-2 p-3 rounded-lg">
-                    <select id="mat_status" class="w-full border-2 p-3 rounded-lg font-semibold text-slate-700">
-                        <option value="Disponível">Disponível</option>
-                        <option value="Manutenção">Manutenção</option>
-                    </select>
-                    <button onclick="salvarMaterial()" class="w-full bg-slate-800 text-white py-4 rounded-lg font-black uppercase hover:bg-orange-500 transition">Salvar Material</button>
-                </div>
-            </section>
-
             <section id="relatorios" class="tab-content hidden">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <div class="bg-slate-700 p-3 rounded-lg border-l-4 border-orange-500 text-white"><p class="text-[8px] font-black uppercase">Receita Ativa</p><h3 id="dashTotal" class="text-sm md:text-2xl font-black">R$ 0,00</h3></div>
                     <div class="bg-white p-3 rounded-lg border-l-4 border-red-500 shadow-md"><p class="text-[8px] font-black uppercase text-red-600">Atrasos</p><h3 id="dashAtraso" class="text-sm md:text-2xl font-black text-red-600">0</h3></div>
-                    <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar cliente ou item..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none"></div>
+                    <div class="bg-slate-700 p-2 rounded-lg flex items-center col-span-2"><input type="text" id="inputBusca" onkeyup="filtrarTabela()" placeholder="🔍 Buscar por cliente, item ou endereço..." class="w-full bg-slate-600 text-white rounded p-2 text-xs outline-none"></div>
                 </div>
+
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden border border-slate-200">
                     <div class="table-container">
-                        <table class="w-full text-left min-w-[1200px]">
+                        <table class="w-full text-left min-w-[1250px]">
                             <thead>
                                 <tr class="bg-slate-100 text-slate-600 uppercase text-[10px] font-black border-b">
-                                    <th class="p-4">Cliente</th>
-                                    <th class="p-4">Item</th>
+                                    <th class="p-4">Cliente / Contato</th>
+                                    <th class="p-4">Material</th>
                                     <th class="p-4 text-center">Qtd</th>
                                     <th class="p-4 text-center">Início</th>
                                     <th class="p-4 text-center">Retorno</th>
                                     <th class="p-4">Valor Un.</th>
-                                    <th class="p-4">Valor Total</th>
+                                    <th class="p-4">Total</th>
                                     <th class="p-4 text-center">Pagamento</th>
                                     <th class="p-4 text-center">Status</th>
                                     <th class="p-4 text-center">Ações</th>
@@ -160,213 +79,99 @@
     </div>
 
     <script>
+        // ... (SENHA, URL_SCRIPT, MASKS e LOGIN permanecem os mesmos) ...
         const SENHA_ACESSO = "Geg@0612";
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyLDvIJ7BeQ5tLDKU8adTf3jqzKdWCQLIMXqxvGbVGHUOkPyBhEzUat2hlNb6xAdNQJEw/exec";
         let chartInstance1 = null, chartInstance2 = null;
         let carrinhoLocacao = [];
 
-        function verificarSenha() {
-            if (document.getElementById('inputSenha').value === SENHA_ACESSO) { localStorage.setItem('geg_autenticado', 'true'); liberarSistema(); } 
-            else { document.getElementById('erroSenha').classList.remove('hidden'); }
-        }
-
+        function verificarSenha() { if (document.getElementById('inputSenha').value === SENHA_ACESSO) { localStorage.setItem('geg_autenticado', 'true'); liberarSistema(); } else { document.getElementById('erroSenha').classList.remove('hidden'); } }
         window.onload = () => { if(localStorage.getItem('geg_autenticado') === 'true') liberarSistema(); };
-
-        function liberarSistema() {
-            document.getElementById('loginOverlay').style.display = 'none';
-            document.getElementById('conteudoSistema').style.display = 'block';
-            carregarEquipamentos(); carregarClientes();
-            const anoSel = document.getElementById('filtroAno');
-            const anoAtual = new Date().getFullYear();
-            for(let i=0; i<3; i++) { let a = anoAtual - i; if(a) anoSel.innerHTML += `<option value="${a}">${a}</option>`; }
-        }
-
+        function liberarSistema() { document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('conteudoSistema').style.display = 'block'; carregarEquipamentos(); carregarClientes(); const anoSel = document.getElementById('filtroAno'); if(anoSel) { const anoAtual = new Date().getFullYear(); for(let i=0; i<3; i++) { let a = anoAtual - i; anoSel.innerHTML += `<option value="${a}">${a}</option>`; } } }
         function logout() { localStorage.removeItem('geg_autenticado'); location.reload(); }
         function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
         function mascaraMoeda(i) { let v = i.value.replace(/\D/g, ""); v = (v/100).toFixed(2).replace(".", ","); i.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); }
 
-        function adicionarItemCarrinho() {
-            const item = document.getElementById('loc_item').value;
-            const valor = document.getElementById('loc_valor_temp').value;
-            const qtd = document.getElementById('loc_qtd').value;
-            if(!item || !valor || qtd < 1) return alert("Preencha item, quantidade e valor unitário!");
-            carrinhoLocacao.push({ item: item, valor: valor, quantidade: qtd });
-            document.getElementById('loc_valor_temp').value = '';
-            document.getElementById('loc_qtd').value = '1';
-            renderizarCarrinho();
-        }
-
-        function removerDoCarrinho(index) {
-            carrinhoLocacao.splice(index, 1);
-            renderizarCarrinho();
-        }
-
-        function renderizarCarrinho() {
-            const container = document.getElementById('carrinhoItens');
-            const btnSalvar = document.getElementById('btnSalvarLoc');
-            container.innerHTML = '';
-            carrinhoLocacao.forEach((obj, index) => {
-                container.innerHTML += `<div class="item-badge"><span><span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full mr-2">${obj.quantidade}x</span>${obj.item} - <span class="text-orange-600">R$ ${obj.valor} un.</span></span><button onclick="removerDoCarrinho(${index})" class="text-red-500 ml-4 font-black">Remover</button></div>`;
-            });
-            if(carrinhoLocacao.length > 0) btnSalvar.classList.remove('hidden');
-            else btnSalvar.classList.add('hidden');
-        }
-
-        async function salvarLocacao() {
-            const nome = document.getElementById('loc_nome').value;
-            const cpf = document.getElementById('loc_cpf').value;
-            const end = document.getElementById('loc_endereco').value;
-            const ini = document.getElementById('loc_inicio').value;
-            const fim = document.getElementById('loc_fim').value;
-            if(!nome || !ini || !fim) return alert("Preencha cliente e datas!");
-            const btn = document.getElementById('btnSalvarLoc');
-            btn.innerText = "Processando..."; btn.disabled = true;
-
-            for (let itemLoc of carrinhoLocacao) {
-                let p = { tipo: 'locacao', nome: nome, cpf: cpf, endereco: end, item: itemLoc.item, quantidade: itemLoc.quantidade, valor: itemLoc.valor.replace(/\./g, "").replace(",", "."), dataInicio: ini, dataFim: fim };
-                await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-            }
-            alert("✅ Locação registrada!");
-            carrinhoLocacao = [];
-            document.getElementById('loc_nome').value = '';
-            renderizarCarrinho();
-            btn.innerText = "Finalizar e Lançar Itens"; btn.disabled = false;
-            carregarEquipamentos();
-        }
-
-        async function renderizarCharts() {
-            const fAno = document.getElementById('filtroAno').value;
-            const fEquip = document.getElementById('filtroEquip').value;
-            const fPagto = document.getElementById('filtroPagto').value;
-            try {
-                const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
-                const dados = await r.json();
-                let meses = Array(12).fill(0), equipMap = {}, totalGeral = 0, contagem = 0, listaEquips = new Set();
-                dados.forEach(item => {
-                    const l = item.valores; if(!l[0] || l[0] === "Nome") return;
-                    const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const qtd = parseFloat(l[9]) || 1; 
-                    const totalLinha = valorUn * qtd;
-                    const equip = l[3]; const pagtoStatus = l[8] || "Pendente"; 
-                    listaEquips.add(equip);
-                    let dIni = new Date(l[5]);
-                    if(isNaN(dIni.getTime())) { const p = String(l[5]).split('/'); dIni = new Date(p[2], p[1]-1, p[0]); }
-                    if(dIni.getFullYear() == fAno) {
-                        if(fEquip === "Todos" || fEquip === equip) {
-                            if(fPagto === "Todos" || fPagto === pagtoStatus) {
-                                meses[dIni.getMonth()] += totalLinha; equipMap[equip] = (equipMap[equip] || 0) + totalLinha;
-                                totalGeral += totalLinha; contagem++;
-                            }
-                        }
-                    }
-                });
-                const fEq = document.getElementById('filtroEquip');
-                if(fEq.options.length <= 1) listaEquips.forEach(e => fEq.innerHTML += `<option value="${e}">${e}</option>`);
-                document.getElementById('cardTotal').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-                document.getElementById('cardQtd').innerText = contagem;
-                document.getElementById('cardMedia').innerText = `R$ ${(contagem > 0 ? totalGeral/contagem : 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-                if(chartInstance1) chartInstance1.destroy();
-                chartInstance1 = new Chart(document.getElementById('chartMensal'), { type: 'bar', data: { labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], datasets: [{ label: 'R$', data: meses, backgroundColor: '#f97316' }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                if(chartInstance2) chartInstance2.destroy();
-                chartInstance2 = new Chart(document.getElementById('chartPizza'), { type: 'doughnut', data: { labels: Object.keys(equipMap), datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#64748b','#f97316','#fb923c','#fdba74'] }] }, options: { maintainAspectRatio: false } });
-            } catch(e) {}
-        }
-
-        async function carregarEquipamentos() {
-            try {
-                const r = await fetch(URL_SCRIPT + "?aba=Equipamentos");
-                const dados = await r.json();
-                const sel = document.getElementById('loc_item');
-                sel.innerHTML = '<option value="">Selecione o Material...</option>';
-                dados.forEach(item => { const e = item.valores; if(e[3] === "Disponível") sel.innerHTML += `<option value="${e[0]}">${e[0]}</option>`; });
-            } catch(e) {}
-        }
-        async function carregarClientes() {
-            try {
-                const r = await fetch(URL_SCRIPT + "?aba=Clientes");
-                const dados = await r.json();
-                const dl = document.getElementById('listaClientes'); dl.innerHTML = '';
-                dados.forEach(item => { const c = item.valores; if(c[0]) dl.innerHTML += `<option value="${c[0]}">`; });
-            } catch(e) {}
-        }
-        async function salvarCliente() {
-            let p = { tipo: 'cliente', nome: document.getElementById('cli_nome').value, cpf: document.getElementById('cli_cpf').value, telefone: document.getElementById('cli_tel').value, endereco: document.getElementById('cli_end').value };
-            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-            alert("✅ Cliente cadastrado!"); document.getElementById('cli_nome').value = ''; carregarClientes();
-        }
-        async function salvarMaterial() {
-            let p = { tipo: 'material', nome: document.getElementById('mat_nome').value, patrimonio: document.getElementById('mat_pat').value, valor: document.getElementById('mat_val').value.replace(/\./g, "").replace(",", "."), status: document.getElementById('mat_status').value };
-            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) });
-            alert("✅ Material cadastrado!"); document.getElementById('mat_nome').value = ''; carregarEquipamentos();
-        }
-
-        // --- RELATÓRIO COM COLUNA VALOR TOTAL ---
+        // --- LÓGICA DO RELATÓRIO COM ENDEREÇO E TELEFONE ---
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
-            tb.innerHTML = "<tr><td colspan='10' class='p-10 text-center font-black text-slate-400'>Sincronizando...</td></tr>";
+            tb.innerHTML = "<tr><td colspan='10' class='p-10 text-center font-black text-slate-400 animate-pulse'>Carregando dados da GeG...</td></tr>";
+            
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
                 const dados = await r.json();
-                tb.innerHTML = ""; let somaTotalAtiva = 0, atrasos = 0; const hoje = new Date(); hoje.setHours(0,0,0,0);
+                tb.innerHTML = ""; 
+                let somaTotalAtiva = 0, atrasos = 0; 
+                const hoje = new Date(); hoje.setHours(0,0,0,0);
                 
                 dados.forEach(item => {
-                    const l = item.valores; const numLinha = item.numeroLinha; if(!l[0] || l[0] === "Nome") return;
+                    const l = item.valores; 
+                    const numLinha = item.numeroLinha; 
+                    if(!l[0] || l[0] === "Nome") return;
                     
+                    const clienteNome = l[0];
+                    const endereco = l[2] || "Endereço não informado";
+                    const itemNome = l[3];
                     const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
+                    const statusLoc = l[7] || "Ativo";    
+                    const statusPagto = l[8] || "Pendente"; 
                     const qtd = parseFloat(l[9]) || 1; 
                     const totalLinha = valorUn * qtd;
                     
-                    const statusLoc = l[7] || "Ativo";    
-                    const statusPagto = l[8] || "Pendente"; 
-                    
-                    const formatarData = (d) => {
-                        let dataObj = new Date(d);
-                        if(isNaN(dataObj.getTime())) { const p = String(d).split('/'); dataObj = new Date(p[2], p[1]-1, p[0]); }
-                        return dataObj;
+                    // Formatação de Datas
+                    const parseData = (d) => {
+                        let obj = new Date(d);
+                        if(isNaN(obj.getTime())) { const p = String(d).split('/'); obj = new Date(p[2], p[1]-1, p[0]); }
+                        return obj;
                     };
-
-                    let dIni = formatarData(l[5]);
-                    let dFim = formatarData(l[6]);
+                    let dIni = parseData(l[5]);
+                    let dFim = parseData(l[6]);
                     dFim.setHours(23,59,59,0); 
 
                     const isVencido = (statusLoc === "Ativo" && hoje > dFim);
                     if(statusLoc === "Ativo") { somaTotalAtiva += totalLinha; if(isVencido) atrasos++; }
 
+                    // Montagem da Linha
                     tb.innerHTML += `<tr class="border-b hover:bg-slate-50 ${isVencido ? 'bg-red-50' : ''} transition">
-                        <td class="p-4 font-bold text-slate-800">${l[0]}</td>
-                        <td class="p-4 text-slate-600">${l[3]}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${clienteNome}</div>
+                            <div class="sub-info">
+                                📍 ${endereco}<br>
+                                🆔 ${l[1] || ''} </div>
+                        </td>
+                        <td class="p-4 text-slate-600 font-medium">${itemNome}</td>
                         <td class="p-4 text-center font-bold text-orange-600">${qtd}</td>
-                        <td class="p-4 text-center">${dIni.toLocaleDateString('pt-BR')}</td>
-                        <td class="p-4 text-center">${dFim.toLocaleDateString('pt-BR')}</td>
-                        <td class="p-4 font-black">R$ ${valorUn.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                        <td class="p-4 font-black text-slate-800 bg-slate-50">R$ ${totalLinha.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td class="p-4 text-center text-[10px]">${dIni.toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 text-center text-[10px]">${dFim.toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 font-bold text-slate-500">R$ ${valorUn.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
+                        <td class="p-4 font-black text-slate-900 bg-slate-50/50">R$ ${totalLinha.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                         <td class="p-4 text-center">
-                            <button onclick="mudarPagamento(${numLinha}, '${statusPagto}')" class="px-3 py-1 rounded text-[10px] font-bold ${statusPagto === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'} transition">
+                            <button onclick="mudarPagamento(${numLinha}, '${statusPagto}')" class="px-3 py-1 rounded text-[10px] font-black ${statusPagto === 'Pago' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-yellow-100 text-yellow-700 border border-yellow-200'} transition">
                                 ${statusPagto}
                             </button>
                         </td>
                         <td class="p-4 text-center">
-                            <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${statusLoc === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">${statusLoc}</span>
+                            <span class="px-2 py-1 rounded text-[9px] font-black uppercase ${statusLoc === 'Ativo' ? 'bg-slate-800 text-orange-400' : 'bg-gray-200 text-gray-500'}">
+                                ${statusLoc}
+                            </span>
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex flex-row justify-center items-center gap-2">
                                 ${statusLoc === 'Ativo' ? `<button onclick="finalizarLocacao(${numLinha})" class="bg-orange-500 text-white px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-orange-600 shadow-sm transition">Finalizar</button>` : ''}
-                                <button onclick="excluirLocacao(${numLinha})" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white shadow-sm transition">Excluir</button>
+                                <button onclick="excluirLocacao(${numLinha})" class="bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded font-black text-[9px] uppercase hover:bg-red-600 hover:text-white transition">X</button>
                             </div>
                         </td>
                     </tr>`;
                 });
+                
                 document.getElementById('dashTotal').innerText = `R$ ${somaTotalAtiva.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error(e); tb.innerHTML = "<tr><td colspan='10' class='p-10 text-center text-red-500'>Erro ao carregar dados. Verifique a conexão.</td></tr>"; }
         }
 
-        async function mudarPagamento(linha, statusAtual) { 
-            const novo = statusAtual === 'Pago' ? 'Pendente' : 'Pago'; 
-            await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'pagamento', linha: linha, statusPagamento: novo}) }); 
-            setTimeout(abrirRelatorio, 500); 
-        }
+        // Funções de ação (Mantidas iguais ao anterior)
+        async function mudarPagamento(linha, statusAtual) { const novo = statusAtual === 'Pago' ? 'Pendente' : 'Pago'; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'pagamento', linha: linha, statusPagamento: novo}) }); setTimeout(abrirRelatorio, 500); }
         async function finalizarLocacao(linha) { if(!confirm("Deseja finalizar esta locação?")) return; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'finalizar', linha: linha}) }); setTimeout(abrirRelatorio, 800); }
         async function excluirLocacao(linha) { if(!confirm("⚠️ EXCLUIR DEFINITIVAMENTE?")) return; await fetch(URL_SCRIPT, { method: 'POST', mode: 'no-cors', body: JSON.stringify({tipo: 'excluir', linha: linha}) }); setTimeout(abrirRelatorio, 800); }
         function filtrarTabela() { let f = document.getElementById("inputBusca").value.toUpperCase(); document.querySelectorAll("#tabelaDados tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(f) ? "" : "none"; }); }
