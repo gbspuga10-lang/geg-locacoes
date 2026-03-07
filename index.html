@@ -17,12 +17,14 @@
         .sub-info { display: block; font-size: 10px; color: #64748b; font-weight: normal; margin-top: 2px; line-height: 1.2; }
         .btn-zap { background: #25d366; color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; margin-left: 5px; display: inline-flex; align-items: center; gap: 3px; }
         thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1); }
+        .animate-pulse-red { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-slate-900 pb-10">
 
     <div id="loginOverlay">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-sm text-center">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
             <img src="logogg.jpeg" alt="GeG" class="h-20 mx-auto mb-6">
             <input type="password" id="inputSenha" placeholder="Senha de Acesso" class="w-full border-2 border-slate-200 p-3 rounded-lg mb-4 text-center">
             <button onclick="verificarSenha()" class="w-full bg-orange-500 text-white font-black py-4 rounded-lg uppercase shadow-lg hover:bg-orange-600">Entrar</button>
@@ -58,7 +60,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="bg-slate-800 p-6 rounded-2xl text-white shadow-lg border-b-4 border-orange-500"><p class="text-xs font-bold opacity-70 uppercase">Receita Período</p><h2 id="cardTotal" class="text-3xl font-black">R$ 0,00</h2></div>
                     <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-blue-500"><p class="text-xs font-bold text-slate-400 uppercase">Locações Efetuadas</p><h2 id="cardQtd" class="text-3xl font-black text-slate-800">0</h2></div>
-                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase">Ticket Médio</p><h2 id="cardMedia" class="text-3xl font-black text-slate-800">R$ 0,00</h2></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border-b-4 border-green-500"><p class="text-xs font-bold text-slate-400 uppercase">Média Mensal (30 dias)</p><h2 id="cardMediaMensal" class="text-3xl font-black text-slate-800">R$ 0,00</h2></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-4 rounded-2xl shadow-xl"><h3 class="text-center font-black text-slate-700 uppercase text-xs mb-4">Faturamento Mensal</h3><div class="chart-container"><canvas id="chartMensal"></canvas></div></div>
@@ -162,6 +164,84 @@
             showTab('dashboard'); renderizarCharts();
         }
 
+        async function renderizarCharts() {
+            const fAno = document.getElementById('filtroAno').value;
+            const fEquip = document.getElementById('filtroEquip').value;
+            try {
+                const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
+                const dados = await r.json();
+                let timelineData = {}; let equipMap = {}; let totalGeral = 0, contagem = 0, listaEquips = new Set();
+                let minDate = null, maxDate = null;
+
+                dados.forEach(item => {
+                    const l = item.valores; if(!l[0] || l[0] === "Nome") return;
+                    const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
+                    const qtd = parseFloat(l[9]) || 1; const totalLinha = valorUn * qtd;
+                    const equip = l[3]; listaEquips.add(equip);
+
+                    let dIni = new Date(l[5]);
+                    if(isNaN(dIni.getTime())) { const p = String(l[5]).split('/'); dIni = new Date(p[2], p[1]-1, p[0]); }
+                    
+                    const anoLoc = dIni.getFullYear();
+                    const mesLoc = dIni.getMonth();
+                    
+                    if(fAno === "Todos" || fAno == anoLoc) {
+                        if(fEquip === "Todos" || fEquip === equip) {
+                            // Registro de datas para o cálculo da média mensal real
+                            if(!minDate || dIni < minDate) minDate = dIni;
+                            if(!maxDate || dIni > maxDate) maxDate = dIni;
+
+                            const sortKey = anoLoc * 100 + mesLoc;
+                            const labelStr = `${mesesAbrev[mesLoc]}/${String(anoLoc).slice(-2)}`;
+                            
+                            if(!timelineData[sortKey]) timelineData[sortKey] = { label: labelStr, valor: 0 };
+                            timelineData[sortKey].valor += totalLinha;
+                            equipMap[equip] = (equipMap[equip] || 0) + totalLinha;
+                            totalGeral += totalLinha; contagem++;
+                        }
+                    }
+                });
+
+                // CÁLCULO DA MÉDIA MENSAL (30 DIAS)
+                let mediaMensal = 0;
+                if(minDate && maxDate) {
+                    const diffTime = Math.abs(maxDate - minDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 para considerar o próprio dia
+                    mediaMensal = (totalGeral / diffDays) * 30;
+                }
+
+                const fEq = document.getElementById('filtroEquip');
+                if(fEq.options.length <= 1) listaEquips.forEach(e => fEq.innerHTML += `<option value="${e}">${e}</option>`);
+
+                let labels = [], dataValues = [];
+                if(fAno === "Todos") {
+                    const sortedKeys = Object.keys(timelineData).sort((a,b) => a-b);
+                    labels = sortedKeys.map(k => timelineData[k].label);
+                    dataValues = sortedKeys.map(k => timelineData[k].valor);
+                } else {
+                    labels = mesesAbrev;
+                    dataValues = mesesAbrev.map((_, i) => {
+                        const key = fAno * 100 + i;
+                        return timelineData[key] ? timelineData[key].valor : 0;
+                    });
+                }
+
+                document.getElementById('cardTotal').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+                document.getElementById('cardQtd').innerText = contagem;
+                document.getElementById('cardMediaMensal').innerText = `R$ ${mediaMensal.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+
+                if(chartInstance1) chartInstance1.destroy();
+                chartInstance1 = new Chart(document.getElementById('chartMensal'), { 
+                    type: 'bar', 
+                    data: { labels: labels, datasets: [{ label: 'Receita R$', data: dataValues, backgroundColor: '#f97316', borderRadius: 5 }] },
+                    options: { maintainAspectRatio: false }
+                });
+
+                if(chartInstance2) chartInstance2.destroy();
+                chartInstance2 = new Chart(document.getElementById('chartPizza'), { type: 'doughnut', data: { labels: Object.keys(equipMap), datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#f97316','#0ea5e9'] }] }, options: { maintainAspectRatio: false } });
+            } catch(e) {}
+        }
+
         async function abrirRelatorio() {
             showTab('relatorios');
             const tb = document.getElementById('tabelaDados');
@@ -169,21 +249,12 @@
             try {
                 const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
                 const dadosRaw = await r.json();
-                
-                // Processamento e Classificação Dupla
                 let locacoes = dadosRaw.filter(item => item.valores[0] && item.valores[0] !== "Nome").map(item => {
                     const l = item.valores;
                     const parseData = (d) => { let o = new Date(d); if(isNaN(o.getTime())) { const p = String(d).split('/'); o = new Date(p[2], p[1]-1, p[0]); } return o; };
-                    return { 
-                        ...item, 
-                        dataRetornoObj: parseData(l[6]),
-                        statusText: l[7] || "Ativo"
-                    };
+                    return { ...item, dataRetornoObj: parseData(l[6]), statusText: l[7] || "Ativo" };
                 });
-
-                // ORDENAÇÃO DUPLA: 
-                // 1º Por Status (Ativo vem antes de Finalizado)
-                // 2º Por Data de Retorno (Mais antiga primeiro dentro do mesmo status)
+                
                 locacoes.sort((a, b) => {
                     if (a.statusText === "Ativo" && b.statusText !== "Ativo") return -1;
                     if (a.statusText !== "Ativo" && b.statusText === "Ativo") return 1;
@@ -191,24 +262,18 @@
                 });
 
                 tb.innerHTML = ""; let somaTotalAtiva = 0, atrasos = 0; const hoje = new Date(); hoje.setHours(0,0,0,0);
-                
                 locacoes.forEach(item => {
                     const l = item.valores; const numLinha = item.numeroLinha;
                     const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
                     const qtd = parseFloat(l[9]) || 1; const totalLinha = valorUn * qtd;
                     const statusLoc = l[7] || "Ativo"; const statusPagto = l[8] || "Pendente";
                     const dFim = item.dataRetornoObj;
-
-                    if(statusLoc === "Ativo") { 
-                        somaTotalAtiva += totalLinha; 
-                        if(hoje > dFim) atrasos++; 
-                    }
-
+                    if(statusLoc === "Ativo") { somaTotalAtiva += totalLinha; if(hoje > dFim) atrasos++; }
                     tb.innerHTML += `<tr class="border-b hover:bg-slate-50 ${statusLoc !== 'Ativo' ? 'opacity-60 bg-gray-50' : ''}">
                         <td class="p-4"><div class="font-bold text-slate-800 uppercase">${l[0]}</div><div class="sub-info">📍 ${l[2] || 'S/E'}</div><div class="sub-info flex items-center">📞 ${l[1] || 'S/T'} ${l[1] ? `<button onclick="abrirZap('${l[1]}')" class="btn-zap"><span>💬</span>ZAP</button>` : ''}</div></td>
                         <td class="p-4 text-slate-600">${l[3]}</td><td class="p-4 text-center font-bold text-orange-600">${qtd}</td>
                         <td class="p-4 text-center text-[10px]">${new Date(l[5]).toLocaleDateString('pt-BR')}</td>
-                        <td class="p-4 text-center text-[10px] font-bold ${hoje > dFim && statusLoc === 'Ativo' ? 'text-red-600 animate-pulse' : ''}">${dFim.toLocaleDateString('pt-BR')}</td>
+                        <td class="p-4 text-center text-[10px] font-bold ${hoje > dFim && statusLoc === 'Ativo' ? 'text-red-600 animate-pulse-red' : ''}">${dFim.toLocaleDateString('pt-BR')}</td>
                         <td class="p-4">R$ ${valorUn.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                         <td class="p-4 font-black bg-slate-50/50">R$ ${totalLinha.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
                         <td class="p-4 text-center"><button onclick="mudarPagamento(${numLinha}, '${statusPagto}')" class="px-3 py-1 rounded text-[10px] font-black ${statusPagto === 'Pago' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${statusPagto}</button></td>
@@ -218,51 +283,6 @@
                 });
                 document.getElementById('dashTotal').innerText = `R$ ${somaTotalAtiva.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
                 document.getElementById('dashAtraso').innerText = atrasos;
-            } catch(e) { console.error(e); }
-        }
-
-        // --- FUNÇÕES DE DASHBOARD E AUXILIARES ---
-        async function renderizarCharts() {
-            const fAno = document.getElementById('filtroAno').value;
-            const fEquip = document.getElementById('filtroEquip').value;
-            try {
-                const r = await fetch(URL_SCRIPT + "?aba=Locacoes");
-                const dados = await r.json();
-                let timelineData = {}; let equipMap = {}; let totalGeral = 0, contagem = 0, listaEquips = new Set();
-                dados.forEach(item => {
-                    const l = item.valores; if(!l[0] || l[0] === "Nome") return;
-                    const valorUn = parseFloat(String(l[4]).replace(",", ".")) || 0;
-                    const qtd = parseFloat(l[9]) || 1; const totalLinha = valorUn * qtd;
-                    const equip = l[3]; listaEquips.add(equip);
-                    let dIni = new Date(l[5]); if(isNaN(dIni.getTime())) { const p = String(l[5]).split('/'); dIni = new Date(p[2], p[1]-1, p[0]); }
-                    const anoLoc = dIni.getFullYear(); const mesLoc = dIni.getMonth();
-                    if(fAno === "Todos" || fAno == anoLoc) {
-                        if(fEquip === "Todos" || fEquip === equip) {
-                            const sortKey = anoLoc * 100 + mesLoc;
-                            const labelStr = `${mesesAbrev[mesLoc]}/${String(anoLoc).slice(-2)}`;
-                            if(!timelineData[sortKey]) timelineData[sortKey] = { label: labelStr, valor: 0 };
-                            timelineData[sortKey].valor += totalLinha; equipMap[equip] = (equipMap[equip] || 0) + totalLinha;
-                            totalGeral += totalLinha; contagem++;
-                        }
-                    }
-                });
-                const fEq = document.getElementById('filtroEquip'); if(fEq.options.length <= 1) listaEquips.forEach(e => fEq.innerHTML += `<option value="${e}">${e}</option>`);
-                let labels = [], dataValues = [];
-                if(fAno === "Todos") {
-                    const sortedKeys = Object.keys(timelineData).sort((a,b) => a-b);
-                    labels = sortedKeys.map(k => timelineData[k].label);
-                    dataValues = sortedKeys.map(k => timelineData[k].valor);
-                } else {
-                    labels = mesesAbrev;
-                    dataValues = mesesAbrev.map((_, i) => { const key = fAno * 100 + i; return timelineData[key] ? timelineData[key].valor : 0; });
-                }
-                document.getElementById('cardTotal').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-                document.getElementById('cardQtd').innerText = contagem;
-                document.getElementById('cardMedia').innerText = `R$ ${(contagem > 0 ? totalGeral/contagem : 0).toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-                if(chartInstance1) chartInstance1.destroy();
-                chartInstance1 = new Chart(document.getElementById('chartMensal'), { type: 'bar', data: { labels: labels, datasets: [{ label: 'Receita R$', data: dataValues, backgroundColor: '#f97316', borderRadius: 5 }] }, options: { maintainAspectRatio: false } });
-                if(chartInstance2) chartInstance2.destroy();
-                chartInstance2 = new Chart(document.getElementById('chartPizza'), { type: 'doughnut', data: { labels: Object.keys(equipMap), datasets: [{ data: Object.values(equipMap), backgroundColor: ['#1e293b','#334155','#475569','#f97316','#0ea5e9'] }] }, options: { maintainAspectRatio: false } });
             } catch(e) {}
         }
 
